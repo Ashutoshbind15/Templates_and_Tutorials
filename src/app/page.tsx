@@ -21,6 +21,8 @@ export default async function Home() {
   await prisma.post.deleteMany({});
   const sess = await getServerSession(options1);
 
+  console.log(sess);
+
   if (sess && sess.user) {
     const ghtok = await prisma.account.findMany({
       where: {
@@ -38,7 +40,6 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div>Prisma and nextauth</div>
-
       {posts.map((post: any) => (
         <Post id={post.id} title={post.title} description={post.content} />
       ))}

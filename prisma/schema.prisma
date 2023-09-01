@@ -20,6 +20,11 @@ model Post {
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
+ enum Role {
+   USER
+   ADMIN
+ }
+
 model Account {
   id                 String  @id @default(cuid())
   userId             String
@@ -56,12 +61,23 @@ model User {
   accounts      Account[]
   sessions      Session[]
   posts       Post[]
+  role Role @default(USER)
+  uploadedRepos Repo[]
+  learningRepos Repo[] @relation("StudentRepo")
 }
 
 model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-
   @@unique([identifier, token])
+}
+
+model Repo {
+  id String @id @default(cuid())
+  title String
+  url String
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
+  students User[] @relation("StudentRepo")
 }
