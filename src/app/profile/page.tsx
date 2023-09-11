@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 const ProfilePage = () => {
   const sess = useSession();
-  console.log(sess);
+
   const rtr = useRouter();
   const user = sess?.data?.user;
 
@@ -23,7 +23,7 @@ const ProfilePage = () => {
       }),
     });
     const data = await res.json();
-    console.log(data);
+
     rtr.push("/");
   };
 

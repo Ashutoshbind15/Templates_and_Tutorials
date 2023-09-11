@@ -2,10 +2,10 @@ import { options1 } from "./api/auth/[...nextauth]/options";
 import SignInC from "./components/auth/SignInC";
 import { getServerSession } from "next-auth/next";
 import prisma from "./lib/prisma";
-import { signOut } from "next-auth/react";
 import SignOut from "./components/auth/SingOut";
 import Post from "./components/posts/Post";
 import PostForm from "./components/forms/Post";
+import { App } from "octokit";
 
 const getPosts = async () => {
   const res = await fetch("http://localhost:3000/api/posts", {
@@ -17,23 +17,38 @@ const getPosts = async () => {
 
 export default async function Home() {
   const posts = await getPosts();
-  console.log(posts);
   await prisma.post.deleteMany({});
   const sess = await getServerSession(options1);
 
-  console.log(sess);
-
   if (sess && sess.user) {
-    const ghtok = await prisma.account.findMany({
+    const githubacc = await prisma.account.findMany({
       where: {
         userId: sess.user.id,
         provider: "github",
       },
     });
 
-    if (ghtok.length > 0) {
-      const accessToken = ghtok[0].access_token;
-      console.log(accessToken);
+    if (githubacc.length > 0) {
+      const installationId = githubacc[0].installationId;
+
+      const app = new App({
+        appId: process.env.GITHUB_APP_ID as string,
+        privateKey: process.env.GITHUB_APP_PRIVATE_KEY as string,
+      });
+
+      let octo;
+      if (installationId?.length)
+        octo = await app.getInstallationOctokit(+installationId);
+
+      try {
+        if (installationId) {
+          const res = await octo?.request("GET /installation/repositories");
+          console.log(res?.data?.total_count);
+        }
+      } catch (error) {
+        console.log("Error in auth, old refresh token");
+        console.log(error);
+      }
     }
   }
 
@@ -45,7 +60,6 @@ export default async function Home() {
       ))}
 
       <PostForm />
-
       <SignInC />
       <SignOut />
     </main>

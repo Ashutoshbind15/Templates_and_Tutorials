@@ -10,7 +10,6 @@ const PostForm = () => {
 
   const submitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(title, description);
     await axios.post("http://localhost:3000/api/posts", {
       title,
       content: description,
