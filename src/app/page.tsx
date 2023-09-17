@@ -29,7 +29,7 @@ export default async function Home() {
     });
 
     if (githubacc.length > 0) {
-      const installationId = githubacc[0].installationId;
+      const installationId = githubacc[0].installationIds[0];
 
       const app = new App({
         appId: process.env.GITHUB_APP_ID as string,
@@ -43,7 +43,7 @@ export default async function Home() {
       try {
         if (installationId) {
           const res = await octo?.request("GET /installation/repositories");
-          console.log(res?.data?.total_count);
+          console.log(res?.data);
         }
       } catch (error) {
         console.log("Error in auth, old refresh token");
@@ -56,7 +56,12 @@ export default async function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div>Prisma and nextauth</div>
       {posts.map((post: any) => (
-        <Post id={post.id} title={post.title} description={post.content} />
+        <Post
+          id={post.id}
+          key={post.id}
+          title={post.title}
+          description={post.content}
+        />
       ))}
 
       <PostForm />
