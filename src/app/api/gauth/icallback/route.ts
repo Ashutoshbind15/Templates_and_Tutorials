@@ -19,14 +19,14 @@ export const GET = async (req: Request) => {
             provider: "github",
           },
           select: {
-            installationId: true,
+            installationIds: true,
           },
         },
       },
     });
 
     if (
-      curruserinstallationid?.accounts[0].installationId === installation_id
+      curruserinstallationid?.accounts[0].installationIds[0] === installation_id
     ) {
       return NextResponse.redirect("http://localhost:3000/");
     }
@@ -37,7 +37,7 @@ export const GET = async (req: Request) => {
         provider: "github",
       },
       data: {
-        installationId: installation_id,
+        installationIds: [installation_id],
       },
     });
   }
