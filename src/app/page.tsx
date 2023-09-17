@@ -1,69 +1,26 @@
-import { options1 } from "./api/auth/[...nextauth]/options";
+"use client";
 import SignInC from "./components/auth/SignInC";
-import { getServerSession } from "next-auth/next";
-import prisma from "./lib/prisma";
 import SignOut from "./components/auth/SingOut";
-import Post from "./components/posts/Post";
 import PostForm from "./components/forms/Post";
-import { App } from "octokit";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+import axios from "axios";
 
-const getPosts = async () => {
-  const res = await fetch(process.env.URL + "/api/posts", {
-    cache: "no-store",
-  });
-  const json = await res.json();
-  console.log(json);
-  return json;
-};
+export default function Home() {
+  const { data: sess } = useSession();
 
-export default async function Home() {
-  const posts = await getPosts();
-  await prisma.post.deleteMany({});
-  const sess = await getServerSession(options1);
+  useEffect(() => {
+    const helper = async () => {
+      const { data } = await axios.get("/api/gauth/repos");
+      console.log(data);
+    };
 
-  if (sess && sess.user) {
-    const githubacc = await prisma.account.findMany({
-      where: {
-        userId: sess.user.id,
-        provider: "github",
-      },
-    });
-
-    if (githubacc.length > 0) {
-      const installationId = githubacc[0].installationIds[0];
-
-      const app = new App({
-        appId: process.env.GITHUB_APP_ID as string,
-        privateKey: process.env.GITHUB_APP_PRIVATE_KEY as string,
-      });
-
-      let octo;
-      if (installationId?.length)
-        octo = await app.getInstallationOctokit(+installationId);
-
-      try {
-        if (installationId) {
-          const res = await octo?.request("GET /installation/repositories");
-          console.log(res?.data);
-        }
-      } catch (error) {
-        console.log("Error in auth, old refresh token");
-        console.log(error);
-      }
-    }
-  }
+    helper();
+  }, [sess]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div>Prisma and nextauth</div>
-      {posts.map((post: any) => (
-        <Post
-          id={post.id}
-          key={post.id}
-          title={post.title}
-          description={post.content}
-        />
-      ))}
 
       <PostForm />
       <SignInC />
