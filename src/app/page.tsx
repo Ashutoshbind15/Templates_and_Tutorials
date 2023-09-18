@@ -1,22 +1,15 @@
-"use client";
 import SignInC from "./components/auth/SignInC";
 import SignOut from "./components/auth/SingOut";
 import PostForm from "./components/forms/Post";
-import { useSession } from "next-auth/react";
-import { useEffect } from "react";
-import axios from "axios";
+import { getServerSession } from "next-auth/next";
+import prisma from "./lib/prisma";
+import { options1 } from "./api/auth/[...nextauth]/options";
 
-export default function Home() {
-  const { data: sess } = useSession();
-
-  useEffect(() => {
-    const helper = async () => {
-      const { data } = await axios.get("/api/gauth/repos");
-      console.log(data);
-    };
-
-    helper();
-  }, [sess]);
+export default async function Home() {
+  const posts = await prisma.post.findMany({});
+  console.log(posts);
+  const sess = await getServerSession(options1);
+  console.log(sess);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
