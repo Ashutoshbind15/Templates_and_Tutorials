@@ -5,7 +5,7 @@ import Button from "../UI/Button";
 
 const SignInC = () => {
   return (
-    <Button onClick={() => signIn()} type="button">
+    <Button onClickf={() => signIn()} type="button">
       Signin
     </Button>
   );
