@@ -6,13 +6,15 @@ import Link from "next/link";
 const AddRepoPage = async () => {
   const session = await getServerSession(options1);
 
+  console.log(session);
+
   if (!session || !session.user) {
     redirect("/api/auth/signin?callbackUrl=/server");
   }
 
-  if (session.user.role !== "ADMIN") {
-    redirect("/");
-  }
+  // if (session.user.role !== "ADMIN") {
+  //   redirect("/");
+  // }
 
   return (
     <div>

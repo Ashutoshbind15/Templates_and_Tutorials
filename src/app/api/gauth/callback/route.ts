@@ -9,29 +9,6 @@ export const GET = async (req: Request) => {
   const code = url.searchParams.get("code");
   const session = await getServerSession(options1);
 
-  // const user = await prisma.user.findFirst({
-  //   where: { id: session?.user.id },
-
-  //   select: {
-  //     accounts: {
-  //       where: {
-  //         provider: "github",
-  //       },
-  //       select: {
-  //         access_token: true,
-  //       },
-  //     },
-  //   },
-  // });
-
-  // if (user?.accounts[0].access_token) {
-  //   const token = user?.accounts[0].access_token;
-  //   const startswithghu = token?.startsWith("ghu_");
-  //   if (startswithghu && token === user?.accounts[0].access_token) {
-  //     return NextResponse.redirect("http://localhost:3000/");
-  //   }
-  // }
-
   if (code?.length) {
     const { data } = await axios.post(
       "https://github.com/login/oauth/access_token",
