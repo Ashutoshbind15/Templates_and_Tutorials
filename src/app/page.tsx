@@ -21,8 +21,6 @@ export default async function Home() {
       },
     });
 
-    console.log(githubacc);
-
     if (githubacc.length > 0) {
       const installationId = githubacc[0].installationIds[0];
 
@@ -38,6 +36,7 @@ export default async function Home() {
       if (installationId) {
         const res = await octo?.request("GET /installation/repositories");
         data = res?.data;
+        console.log(data?.repositories);
       } else {
         console.log("err");
       }
@@ -59,7 +58,7 @@ export default async function Home() {
       {data && (
         <div className="p-2 border-2 border-white">
           {data?.repositories?.map((repo: any) => (
-            <div className="my-2 border-b-2 border-white">
+            <div className="my-2 border-b-2 border-white" key={repo?.id}>
               <h1>repo : {repo.name}</h1>
               <h1>owner : {JSON.stringify(repo.owner.login)}</h1>
               <p>
