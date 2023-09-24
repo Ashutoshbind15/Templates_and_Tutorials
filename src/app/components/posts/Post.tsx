@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import React from "react";
 
 const Post = (post: { title: string; description: string; id: string }) => {

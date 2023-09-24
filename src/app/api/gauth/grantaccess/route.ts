@@ -1,15 +1,14 @@
 import { getServerSession } from "next-auth";
-import { options1 } from "../auth/[...nextauth]/options";
 import prisma from "@/app/lib/prisma";
 import { App } from "octokit";
 import { NextResponse } from "next/server";
+import { options1 } from "../../auth/[...nextauth]/options";
 
 export const POST = async (req: Request) => {
   const jsonreq = await req.json();
   // const { uid }: { uid: string } = jsonreq;
-  const user = "Ashutosh-1302";
+  const user = "user1";
   const sess = await getServerSession(options1);
-  console.log("gds");
 
   if (sess && sess.user) {
     const githubacc = await prisma.account.findMany({
@@ -31,27 +30,25 @@ export const POST = async (req: Request) => {
       if (installationId?.length)
         octo = await app.getInstallationOctokit(+installationId);
 
-      console.log("svr");
-      // if (installationId) {
-      //   const res = await octo?.request(
-      //     "PUT /repos/{owner}/{repo}/collaborators/{username}",
-      //     {
-      //       owner: "AshutoshBindCodeFiles",
-      //       repo: "Temp1",
-      //       username: user,
-      //       permission: "triage",
-      //       headers: {
-      //         "X-GitHub-Api-Version": "2022-11-28",
-      //       },
-      //     }
-      //   );
-      //   console.log(res);
-      //   return NextResponse.json({ msg: "success" }, { status: 200 });
-      // } else {
-      //   console.log("err");
-      //   return NextResponse.json({ msg: "danger" }, { status: 500 });
-      // }
-      return NextResponse.json({ msg: "success", status: 200 });
+      if (installationId) {
+        const res = await octo?.request(
+          "PUT /repos/{owner}/{repo}/collaborators/{username}",
+          {
+            owner: "repoowner",
+            repo: "reponame",
+            username: user,
+            permission: "triage",
+            headers: {
+              "X-GitHub-Api-Version": "2022-11-28",
+            },
+          }
+        );
+        console.log(res);
+        return NextResponse.json({ msg: "success", status: 200 });
+      } else {
+        console.log("err");
+        return NextResponse.json({ msg: "danger", status: 404 });
+      }
     }
   }
 };
