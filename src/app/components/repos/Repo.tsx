@@ -7,6 +7,12 @@ const Repo = ({ repo }: any) => {
     const { data } = await axios.post("/api/gauth/grantaccess", {});
     console.log(data);
   };
+  const accessgetHandler = async () => {
+    const { data } = await axios.post("/api/gauth/reqaccess", {
+      repoId: repo.id,
+    });
+    console.log(data);
+  };
 
   return (
     <div className="my-2 border-b-2 border-white" key={repo?.id}>
@@ -15,6 +21,9 @@ const Repo = ({ repo }: any) => {
       <p>
         description: {repo.description} <br />
       </p>
+      <button onClick={accessgetHandler} className="bg-white text-black">
+        Req Access
+      </button>
       <button onClick={accessgrantHandler} className="bg-white text-black">
         Give Access
       </button>

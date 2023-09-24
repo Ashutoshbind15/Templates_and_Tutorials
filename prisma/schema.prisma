@@ -63,6 +63,7 @@ model User {
   role Role @default(USER)
   uploadedRepos Repo[]
   learningRepos Repo[] @relation("StudentRepo")
+  requestedRepos Repo[] @relation("RequestRepo")
 }
 
 model VerificationToken {
@@ -79,4 +80,5 @@ model Repo {
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
   students User[] @relation("StudentRepo")
+  requesters User[] @relation("RequestRepo")
 }
