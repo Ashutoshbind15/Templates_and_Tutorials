@@ -11,6 +11,12 @@ import Repo from "./components/repos/Repo";
 export default async function Home() {
   const posts = await prisma.post.findMany({});
   const sess = await getServerSession(options1);
+  const repos = await prisma.repo.findMany({
+    include: {
+      owner: true,
+    },
+  });
+  console.log(repos);
 
   let data;
 
@@ -56,13 +62,12 @@ export default async function Home() {
         />
       ))}
 
-      {data && (
-        <div className="p-2 border-2 border-white">
-          {data?.repositories?.map((repo: any) => (
-            <Repo repo={repo} key={repo.id} />
-          ))}
-        </div>
-      )}
+      <div className="p-2 border-2 border-white">
+        {repos.map((repo: any) => (
+          <Repo repo={repo} key={repo.id} />
+        ))}
+      </div>
+
       <PostForm />
       <SignInC />
       <SignOut />

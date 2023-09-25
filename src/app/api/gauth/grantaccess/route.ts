@@ -6,8 +6,7 @@ import { options1 } from "../../auth/[...nextauth]/options";
 
 export const POST = async (req: Request) => {
   const jsonreq = await req.json();
-  // const { uid }: { uid: string } = jsonreq;
-  const user = "user1";
+  const { ownerId: owner, repoId: repo, userId: user } = jsonreq;
   const sess = await getServerSession(options1);
 
   if (sess && sess.user) {
@@ -34,8 +33,8 @@ export const POST = async (req: Request) => {
         const res = await octo?.request(
           "PUT /repos/{owner}/{repo}/collaborators/{username}",
           {
-            owner: "repoowner",
-            repo: "reponame",
+            owner: owner,
+            repo: repo,
             username: user,
             permission: "triage",
             headers: {
