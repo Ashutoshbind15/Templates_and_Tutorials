@@ -25,8 +25,7 @@ const AddRepoPage = async () => {
       </Link>
       {
         <Link
-          href={`https://github.com/apps/tutsandtempsprod
-        /installations/new`}
+          href={`https://github.com/apps/tutsandtempsprod/installations/new`}
         >
           Start by giving us access
         </Link>
