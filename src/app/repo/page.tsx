@@ -4,6 +4,7 @@ import Repo from "../components/repos/Repo";
 
 import { redirect } from "next/navigation";
 import Button from "../components/UI/Button";
+import RedirectButton from "../components/UI/Buttons/Redirect";
 
 const RepoPage = async () => {
   const repos = await prisma.repo.findMany({
@@ -20,10 +21,7 @@ const RepoPage = async () => {
         {repos.map((repo: any) => (
           <div key={repo.id}>
             <Repo repo={repo} />
-            <Button
-              type="button"
-              onClickf={() => redirect(`/repo/${repo?.id}`)}
-            ></Button>
+            <RedirectButton url={`/repo/${repo.id}`} />
           </div>
         ))}
       </div>
