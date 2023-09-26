@@ -7,7 +7,6 @@ import { App } from "octokit";
 export const GET = async (req: Request) => {
   const url = new URL(req.url as string);
   console.log(url);
-
   const installation_id = url.searchParams.get("installation_id");
   const session = await getServerSession(options1);
 
@@ -66,7 +65,7 @@ export const GET = async (req: Request) => {
     if (
       curruserinstallationid?.accounts[0].installationIds[0] === installation_id
     ) {
-      return NextResponse.redirect("http://localhost:3000/");
+      return NextResponse.redirect(process.env.URL as string);
     }
 
     await prisma.account.updateMany({
@@ -79,5 +78,5 @@ export const GET = async (req: Request) => {
       },
     });
   }
-  return NextResponse.redirect("http://localhost:3000/");
+  return NextResponse.redirect(process.env.URL as string);
 };

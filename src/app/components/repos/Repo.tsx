@@ -35,9 +35,9 @@ const Repo = ({ repo, ownerName }: any) => {
   return (
     <div className="my-2 border-b-2 border-white" key={repo?.id}>
       <h1>repo : {repo.title}</h1>
-      <h1>owner : {JSON.stringify(repo.owner.name)}</h1>
+      <h1>owner : {JSON.stringify(repo?.owner?.name)}</h1>
       <p>
-        description: {repo.description} <br />
+        description: {repo?.description} <br />
       </p>
       <button onClick={accessgetHandler} className="bg-white text-black">
         Req Access
