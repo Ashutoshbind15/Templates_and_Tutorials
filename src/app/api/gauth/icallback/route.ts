@@ -11,17 +11,10 @@ export const GET = async (req: Request) => {
   const session = await getServerSession(options1);
 
   if (installation_id?.length) {
-    const curruserinstallationid = await prisma.user.findFirst({
-      where: { id: session?.user.id },
+    const curruserinstallationid = await prisma.account.findFirst({
+      where: { id: session?.user.id, provider: "github" },
       select: {
-        accounts: {
-          where: {
-            provider: "github",
-          },
-          select: {
-            installationIds: true,
-          },
-        },
+        gh_installation_ids: true,
       },
     });
 
@@ -31,8 +24,25 @@ export const GET = async (req: Request) => {
         ownerId: curruserid,
       },
     });
-    const installation_id =
-      curruserinstallationid?.accounts[0].installationIds[0];
+
+    const hasInstallation = curruserinstallationid?.gh_installation_ids.length;
+
+    if (!curruserid) {
+      return NextResponse.json({ error: "User not found" }, { status: 401 });
+    }
+
+    if (!hasInstallation) {
+      await prisma.account.updateMany({
+        where: {
+          userId: session?.user.id,
+          provider: "github",
+        },
+        data: {
+          gh_installation_ids: [installation_id],
+        },
+      });
+    }
+
     const app = new App({
       appId: process.env.GITHUB_APP_ID as string,
       privateKey: process.env.GITHUB_APP_PRIVATE_KEY as string,
@@ -44,39 +54,28 @@ export const GET = async (req: Request) => {
     if (octo) {
       const res = await octo?.request("GET /installation/repositories");
       const repos = res.data.repositories;
+
       const newRepos = repos.filter((repo: any) => {
         return !currUserRepos.some((userRepo) => {
-          return userRepo.id === repo.id;
+          return userRepo.id.toString() === repo.id.toString();
         });
       });
 
+      console.log(`New Repos: `, newRepos);
+
       for (let newRepo of newRepos) {
+        console.log(newRepo.owner.login, newRepo.name, newRepo.html_url);
         await prisma.repo.create({
           data: {
             id: newRepo.id.toString(),
             title: newRepo.name,
             ownerId: curruserid as string,
             url: newRepo.html_url,
+            repoOrg: newRepo.owner.login,
           },
         });
       }
     }
-
-    if (
-      curruserinstallationid?.accounts[0].installationIds[0] === installation_id
-    ) {
-      return NextResponse.redirect(process.env.URL as string);
-    }
-
-    await prisma.account.updateMany({
-      where: {
-        userId: session?.user.id,
-        provider: "github",
-      },
-      data: {
-        installationIds: [installation_id as string],
-      },
-    });
   }
   return NextResponse.redirect(process.env.URL as string);
 };

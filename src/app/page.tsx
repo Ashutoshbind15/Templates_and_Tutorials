@@ -1,58 +1,46 @@
 import SignInC from "./components/auth/SignInC";
 import SignOut from "./components/auth/SingOut";
 import PostForm from "./components/forms/Post";
-import { getServerSession } from "next-auth/next";
 import prisma from "./lib/prisma";
-import { options1 } from "./api/auth/[...nextauth]/options";
 import Post from "./components/posts/Post";
-import { App } from "octokit";
 import Repo from "./components/repos/Repo";
+import { getServerSession } from "next-auth";
+import { options1 } from "./api/auth/[...nextauth]/options";
 
 export default async function Home() {
   const posts = await prisma.post.findMany({});
-  const sess = await getServerSession(options1);
   const repos = await prisma.repo.findMany({
     include: {
       owner: true,
+      requesters: true,
     },
   });
-  console.log(repos);
 
-  let data;
+  const sess = await getServerSession(options1);
+  const uid = sess?.user?.id;
 
-  if (sess && sess.user) {
-    const githubacc = await prisma.account.findMany({
-      where: {
-        userId: sess.user.id,
-        provider: "github",
-      },
-    });
+  const userStripeAccountPopulatedRepos = repos.map((repo) => {
+    const repoOwnerId = repo.ownerId;
+    const repoOwner = repo.owner;
+    const hasConnected = repoOwner?.stripeAccountOnBoarded ? true : false;
+    const hasStripeProduct = repo.hasStripeProduct ? true : false;
+    const isOwner = repoOwnerId === uid;
 
-    if (githubacc.length > 0) {
-      const installationId = githubacc[0].installationIds[0];
+    // for each repo, we display the repo if it has a product and the owner has a stripe account
+    // if not, we display the owner the option to connect stripe
+    // if the owner has a stripe account, we display the option to create a product
 
-      const app = new App({
-        appId: process.env.GITHUB_APP_ID as string,
-        privateKey: process.env.GITHUB_APP_PRIVATE_KEY as string,
-      });
-
-      let octo;
-      if (installationId?.length)
-        octo = await app.getInstallationOctokit(+installationId);
-
-      if (installationId) {
-        const res = await octo?.request("GET /installation/repositories");
-        data = res?.data;
-        // console.log(data?.repositories);
-      } else {
-        console.log("err");
-      }
-    }
-  }
+    return {
+      ...repo,
+      hasConnectedStripe: hasConnected,
+      hasStripeProduct: hasStripeProduct,
+      isOwner: isOwner,
+    };
+  });
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div>Prisma and nextauth</div>
+      <div>Repos</div>
       {posts.map((post: any) => (
         <Post
           description={post.content || "desc"}
@@ -63,9 +51,17 @@ export default async function Home() {
       ))}
 
       <div className="p-2 border-2 border-white">
-        {repos.map((repo: any) => (
-          <Repo repo={repo} key={repo.id} />
-        ))}
+        {userStripeAccountPopulatedRepos.map((repo: any) => {
+          return (
+            <Repo
+              repo={repo}
+              key={repo.id}
+              hasConnectedStripe={repo.hasConnectedStripe}
+              hasStripeProduct={repo.hasStripeProduct}
+              isOwner={repo.isOwner}
+            />
+          );
+        })}
       </div>
 
       <PostForm />

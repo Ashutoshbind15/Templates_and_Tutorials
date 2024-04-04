@@ -5,6 +5,11 @@ import { useSession } from "next-auth/react";
 
 const Navbar = () => {
   const sess = useSession();
+  const status = sess?.status;
+
+  if (status === "loading") return <div>Loading...</div>;
+  if (status === "unauthenticated") return <div>Unauthenticated</div>;
+
   const user = sess?.data?.user;
 
   return (
@@ -14,16 +19,14 @@ const Navbar = () => {
         <Link href={"/addrepo"} className="mr-3">
           Add Repo
         </Link>
-        {user && (
-          <Link href={"/profile"} className="mr-3">
-            {/* circular user profile having the initials */}
-
-            <div className="bg-white text-black h-10 w-10 rounded-full flex items-center justify-center">
-              {user.name && user.name.length && user.name[0]}
-            </div>
+        {user && user.name?.length ? (
+          <Link
+            href={"/profile"}
+            className="mr-3 bg-white text-black h-10 w-10 rounded-full flex items-center justify-center"
+          >
+            {user.name && user.name.length && user.name[0]}
           </Link>
-        )}
-        {!user && (
+        ) : (
           <Link href={"/api/auth/signin"} className="mr-3">
             Sign In
           </Link>

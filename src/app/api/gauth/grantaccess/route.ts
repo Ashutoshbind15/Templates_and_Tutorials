@@ -1,41 +1,54 @@
 import { getServerSession } from "next-auth";
 import prisma from "@/app/lib/prisma";
-import { App } from "octokit";
+import { App, Octokit } from "octokit";
 import { NextResponse } from "next/server";
 import { options1 } from "../../auth/[...nextauth]/options";
+import { getUserDetailsFromUserId } from "@/app/lib/githubapi";
 
 export const POST = async (req: Request) => {
   const jsonreq = await req.json();
-  const { ownerId: owner, repoId: repo, userId: user } = jsonreq;
+  const { repoId, userId: user } = jsonreq;
   const sess = await getServerSession(options1);
 
   if (sess && sess.user) {
-    const githubacc = await prisma.account.findMany({
+    const owner = sess?.user.id;
+
+    const githubacc = await prisma.account.findFirst({
       where: {
-        userId: sess.user.id,
+        userId: owner,
         provider: "github",
       },
     });
 
-    if (githubacc.length > 0) {
-      const installationId = githubacc[0].installationIds[0];
+    if (!githubacc)
+      return NextResponse.json({ msg: "Unauthorised", status: 401 });
 
-      const app = new App({
-        appId: process.env.GITHUB_APP_ID as string,
-        privateKey: process.env.GITHUB_APP_PRIVATE_KEY as string,
+    if (githubacc) {
+      const gh_app_access_token = githubacc.gh_app_access_token;
+
+      const octokit = new Octokit({
+        auth: gh_app_access_token,
       });
 
-      let octo;
-      if (installationId?.length)
-        octo = await app.getInstallationOctokit(+installationId);
+      const repo = await prisma.repo.findFirst({
+        where: {
+          id: repoId,
+        },
+      });
 
-      if (installationId) {
-        const res = await octo?.request(
+      const repoName = repo?.title;
+      const repoOrg = repo?.repoOrg;
+
+      const requester = await getUserDetailsFromUserId(user);
+      const username = requester?.data.login;
+
+      if (gh_app_access_token) {
+        const res = await octokit?.request(
           "PUT /repos/{owner}/{repo}/collaborators/{username}",
           {
-            owner: owner,
-            repo: repo,
-            username: user,
+            owner: repoOrg as string,
+            repo: repoName as string,
+            username: username,
             permission: "triage",
             headers: {
               "X-GitHub-Api-Version": "2022-11-28",

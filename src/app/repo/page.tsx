@@ -1,9 +1,6 @@
 import React from "react";
 import prisma from "../lib/prisma";
 import Repo from "../components/repos/Repo";
-
-import { redirect } from "next/navigation";
-import Button from "../components/UI/Button";
 import RedirectButton from "../components/UI/Buttons/Redirect";
 
 const RepoPage = async () => {

@@ -22,32 +22,50 @@ export const GET = async (req: Request) => {
       }
     );
 
+    console.log(data);
+
     const access_token = data.split("&")[0].split("=")[1];
     const refresh_token = data.split("&")[2].split("=")[1];
     const refresh_token_expire = data.split("&")[3].split("=")[1];
 
-    await prisma.user.update({
+    console.log("access_token", access_token);
+    console.log("refresh_token", refresh_token);
+    console.log("refresh_token_expire", refresh_token_expire);
+
+    const GithubAccount = await prisma.account.findFirst({
       where: {
-        id: session?.user.id,
+        userId: session?.user.id,
+        provider: "github",
       },
-      include: {
-        accounts: true,
+    });
+
+    console.log("GitHubAccountExist", GithubAccount);
+
+    if (!session?.user.id || !GithubAccount) {
+      return NextResponse.json({ error: "User not found" }, { status: 401 });
+    }
+
+    const isAppInstalled = await prisma.account.findFirst({
+      where: {
+        userId: session?.user.id,
+        provider: "github",
+        gh_installation_ids: {
+          isEmpty: false,
+        },
+      },
+    });
+
+    if (!isAppInstalled) {
+      return NextResponse.json({ error: "App not installed" }, { status: 401 });
+    }
+
+    await prisma.account.update({
+      where: {
+        id: GithubAccount.id,
       },
       data: {
-        accounts: {
-          updateMany: {
-            where: {
-              provider: "github",
-            },
-            data: {
-              access_token: access_token,
-              type: "github-app-auth",
-              refresh_token: refresh_token,
-              expires_at: +refresh_token_expire,
-              scope: null,
-            },
-          },
-        },
+        gh_app_access_token: access_token,
+        gh_app_refresh_token: refresh_token,
       },
     });
   }

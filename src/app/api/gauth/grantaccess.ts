@@ -7,20 +7,20 @@ import { NextResponse } from "next/server";
 export const POST = async (req: Request) => {
   const jsonreq = await req.json();
   // const { uid }: { uid: string } = jsonreq;
-  const user = "Ashutosh-1302";
+  const user = "RandomUser";
   const sess = await getServerSession(options1);
   console.log("gds");
 
   if (sess && sess.user) {
-    const githubacc = await prisma.account.findMany({
+    const githubacc = await prisma.account.findFirst({
       where: {
         userId: sess.user.id,
         provider: "github",
       },
     });
 
-    if (githubacc.length > 0) {
-      const installationId = githubacc[0].installationIds[0];
+    if (githubacc) {
+      const installationId = githubacc.gh_installation_ids[0];
 
       const app = new App({
         appId: process.env.GITHUB_APP_ID as string,
@@ -32,25 +32,7 @@ export const POST = async (req: Request) => {
         octo = await app.getInstallationOctokit(+installationId);
 
       console.log("svr");
-      // if (installationId) {
-      //   const res = await octo?.request(
-      //     "PUT /repos/{owner}/{repo}/collaborators/{username}",
-      //     {
-      //       owner: "AshutoshBindCodeFiles",
-      //       repo: "Temp1",
-      //       username: user,
-      //       permission: "triage",
-      //       headers: {
-      //         "X-GitHub-Api-Version": "2022-11-28",
-      //       },
-      //     }
-      //   );
-      //   console.log(res);
-      //   return NextResponse.json({ msg: "success" }, { status: 200 });
-      // } else {
-      //   console.log("err");
-      //   return NextResponse.json({ msg: "danger" }, { status: 500 });
-      // }
+
       return NextResponse.json({ msg: "success", status: 200 });
     }
   }

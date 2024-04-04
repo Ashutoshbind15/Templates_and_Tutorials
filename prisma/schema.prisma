@@ -38,8 +38,12 @@ model Account {
   scope              String?
   id_token           String?  @db.Text
   session_state      String?
+  gh_app_access_token String? @db.Text
+  gh_app_refresh_token String? @db.Text
+  gh_app_access_token_expires_at DateTime?
+  gh_app_refresh_token_expires_at DateTime?
+  gh_installation_ids String[]
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  installationIds String[]
   @@unique([provider, providerAccountId])
 }
 
@@ -62,6 +66,8 @@ model User {
   posts       Post[]
   role Role @default(USER)
   uploadedRepos Repo[]
+  paymentGatewayAccountId String?
+  paymentGatewayAccountOnBoarded Boolean @default(false)
   learningRepos Repo[] @relation("StudentRepo")
   requestedRepos Repo[] @relation("RequestRepo")
 }
@@ -81,4 +87,31 @@ model Repo {
   ownerId String
   students User[] @relation("StudentRepo")
   requesters User[] @relation("RequestRepo")
+  repoOrg String?
+  hasStripeProduct Boolean @default(false)
+  stripeProduct StripeProduct?
+}
+
+model StripeProduct {
+  id String @id @default(cuid())
+  repoId String @unique
+  productId String @unique
+  priceId String @unique
+  description String?
+  features String[]
+  repo Repo @relation(fields: [repoId], references: [id])
+  buyRequests BuyRequest[]
+}
+
+model BuyRequest {
+  id String @id @default(cuid())
+  userId String
+  stripeProductId String @unique
+  stripePriceId String
+  // stripeCheckoutSessionId String
+  // stripePaymentIntentId String
+  // stripePaymentIntentClientSecret String
+  // stripePaymentMethodId String
+  isPaid Boolean @default(false)
+  stripeProduct StripeProduct @relation(fields: [stripeProductId], references: [id])
 }

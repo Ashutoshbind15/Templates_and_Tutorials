@@ -10,15 +10,15 @@ export const GET = async (req: Request) => {
   let res;
 
   if (sess && sess.user) {
-    const githubacc = await prisma.account.findMany({
+    const githubacc = await prisma.account.findFirst({
       where: {
         userId: sess.user.id,
         provider: "github",
       },
     });
 
-    if (githubacc.length > 0) {
-      const installationId = githubacc[0].installationIds[0];
+    if (githubacc) {
+      const installationId = githubacc.gh_installation_ids[0];
 
       const app = new App({
         appId: process.env.GITHUB_APP_ID as string,
