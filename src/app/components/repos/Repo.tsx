@@ -1,8 +1,9 @@
 "use client";
 import axios from "axios";
+import Button from "../UI/Button";
 
-const Repo = ({ repo, hasStripeProduct, hasConnectedStripe, isOwner }: any) => {
-  console.log(hasConnectedStripe, hasStripeProduct, isOwner);
+const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
+  console.log(hasConnectedPayments, isOwner);
 
   const accessgrantHandler = async (userId: string) => {
     const { data } = await axios.post("/api/gauth/grantaccess", {
@@ -25,6 +26,8 @@ const Repo = ({ repo, hasStripeProduct, hasConnectedStripe, isOwner }: any) => {
     window.location.replace(data);
   };
 
+  const buyHandler = () => {};
+
   return (
     <div className="my-2 border-b-2 border-white" key={repo?.id}>
       <h1>repo : {repo.title}</h1>
@@ -41,29 +44,24 @@ const Repo = ({ repo, hasStripeProduct, hasConnectedStripe, isOwner }: any) => {
         {repo?.requesters?.map((req: any) => (
           <div key={req.id}>
             <p>{req.name}</p>
-            <button onClick={() => accessgrantHandler(req.id)}>
-              Grant Access
-            </button>
+            {isOwner &&
+              (hasConnectedPayments ? (
+                <button onClick={() => accessgrantHandler(req.id)}>
+                  Grant Access
+                </button>
+              ) : (
+                <button onClick={() => {}}>
+                  Connect To The Payment Gateway
+                </button>
+              ))}
           </div>
         ))}
 
-        {hasStripeProduct && (
-          <div>
-            <h1>Stripe Product</h1>
-            <p>product id: {repo?.stripeProduct?.id}</p>
-            <p>product name: {repo?.stripeProduct?.name}</p>
-            <p>product price: {repo?.stripeProduct?.price}</p>
-            <p>product currency: {repo?.stripeProduct?.currency}</p>
-          </div>
+        {!isOwner && (
+          <Button onClickf={() => buyHandler()} type="button">
+            Buy now
+          </Button>
         )}
-
-        {!hasStripeProduct &&
-          isOwner &&
-          (hasConnectedStripe ? (
-            <form></form>
-          ) : (
-            <button onClick={stripeConnectionHandler}>Connect Stripe</button>
-          ))}
       </div>
     </div>
   );
