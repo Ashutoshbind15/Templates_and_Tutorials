@@ -1,8 +1,14 @@
 "use client";
 import axios from "axios";
+import Button from "../UI/Button";
+import { useSession } from "next-auth/react";
+import { loadRazorpayScript } from "@/app/lib/loadrazorpay";
 
-const Repo = ({ repo, hasStripeProduct, hasConnectedStripe, isOwner }: any) => {
-  console.log(hasConnectedStripe, hasStripeProduct, isOwner);
+const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
+  console.log(hasConnectedPayments, isOwner);
+
+  const sess = useSession();
+  const uid = sess?.data?.user?.id;
 
   const accessgrantHandler = async (userId: string) => {
     const { data } = await axios.post("/api/gauth/grantaccess", {
@@ -19,10 +25,52 @@ const Repo = ({ repo, hasStripeProduct, hasConnectedStripe, isOwner }: any) => {
     console.log(data);
   };
 
-  const stripeConnectionHandler = async () => {
-    const { data } = await axios.post("/api/stripe/connect");
-    console.log(data);
-    window.location.replace(data);
+  const buyHandler = async () => {
+    const { data } = await axios.post("/api/gauth/repos/orders", {
+      userId: uid,
+      repoId: repo.id,
+    });
+
+    const scriptSrc = "https://checkout.razorpay.com/v1/checkout.js";
+    await loadRazorpayScript(scriptSrc);
+
+    const order = data.order;
+
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Use the public key here
+      amount: +order.amount,
+      currency: order.currency,
+      name: "Your Company Name",
+      description: "Test Transaction",
+      order_id: order.id,
+      handler: async function (response: any) {
+        // Handle payment success, send details to server for verification
+        console.log(response);
+
+        const verifyResponse = await fetch("/api/payment/verify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            order_id: order.id,
+            payment_id: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          }),
+        });
+
+        const verifyData = await verifyResponse.json().then((data) => data);
+        console.log(verifyData);
+      },
+      prefill: {
+        name: "Test Namse",
+        email: "test1@example.com",
+        contact: "9999992999",
+      },
+    };
+
+    const paymentObject = new (window as any).Razorpay(options);
+    paymentObject.open();
   };
 
   return (
@@ -41,29 +89,24 @@ const Repo = ({ repo, hasStripeProduct, hasConnectedStripe, isOwner }: any) => {
         {repo?.requesters?.map((req: any) => (
           <div key={req.id}>
             <p>{req.name}</p>
-            <button onClick={() => accessgrantHandler(req.id)}>
-              Grant Access
-            </button>
+            {isOwner &&
+              (hasConnectedPayments ? (
+                <button onClick={() => accessgrantHandler(req.id)}>
+                  Grant Access
+                </button>
+              ) : (
+                <button onClick={() => {}}>
+                  Connect To The Payment Gateway
+                </button>
+              ))}
           </div>
         ))}
 
-        {hasStripeProduct && (
-          <div>
-            <h1>Stripe Product</h1>
-            <p>product id: {repo?.stripeProduct?.id}</p>
-            <p>product name: {repo?.stripeProduct?.name}</p>
-            <p>product price: {repo?.stripeProduct?.price}</p>
-            <p>product currency: {repo?.stripeProduct?.currency}</p>
-          </div>
+        {!isOwner && (
+          <Button onClickf={() => buyHandler()} type="button">
+            Buy now
+          </Button>
         )}
-
-        {!hasStripeProduct &&
-          isOwner &&
-          (hasConnectedStripe ? (
-            <form></form>
-          ) : (
-            <button onClick={stripeConnectionHandler}>Connect Stripe</button>
-          ))}
       </div>
     </div>
   );

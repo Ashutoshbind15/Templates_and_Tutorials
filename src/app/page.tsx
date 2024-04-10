@@ -19,11 +19,12 @@ export default async function Home() {
   const sess = await getServerSession(options1);
   const uid = sess?.user?.id;
 
-  const userStripeAccountPopulatedRepos = repos.map((repo) => {
+  const populatedRepos = repos.map((repo) => {
     const repoOwnerId = repo.ownerId;
     const repoOwner = repo.owner;
-    const hasConnected = repoOwner?.stripeAccountOnBoarded ? true : false;
-    const hasStripeProduct = repo.hasStripeProduct ? true : false;
+    const hasConnected = repoOwner?.paymentGatewayAccountOnBoarded
+      ? true
+      : false;
     const isOwner = repoOwnerId === uid;
 
     // for each repo, we display the repo if it has a product and the owner has a stripe account
@@ -32,8 +33,7 @@ export default async function Home() {
 
     return {
       ...repo,
-      hasConnectedStripe: hasConnected,
-      hasStripeProduct: hasStripeProduct,
+      hasConnectedPayments: hasConnected,
       isOwner: isOwner,
     };
   });
@@ -51,13 +51,12 @@ export default async function Home() {
       ))}
 
       <div className="p-2 border-2 border-white">
-        {userStripeAccountPopulatedRepos.map((repo: any) => {
+        {populatedRepos.map((repo: any) => {
           return (
             <Repo
               repo={repo}
               key={repo.id}
-              hasConnectedStripe={repo.hasConnectedStripe}
-              hasStripeProduct={repo.hasStripeProduct}
+              hasConnectedPayments={repo.hasConnectedPayments}
               isOwner={repo.isOwner}
             />
           );

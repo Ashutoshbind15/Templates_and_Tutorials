@@ -22,6 +22,7 @@ model Post {
 
  enum Role {
    USER
+   CREATOR
    ADMIN
  }
 
@@ -70,6 +71,7 @@ model User {
   paymentGatewayAccountOnBoarded Boolean @default(false)
   learningRepos Repo[] @relation("StudentRepo")
   requestedRepos Repo[] @relation("RequestRepo")
+  buys Buyer[]
 }
 
 model VerificationToken {
@@ -88,30 +90,43 @@ model Repo {
   students User[] @relation("StudentRepo")
   requesters User[] @relation("RequestRepo")
   repoOrg String?
-  hasStripeProduct Boolean @default(false)
-  stripeProduct StripeProduct?
+  buyers Buyer[]  
+  cost Int @default(0)
 }
 
-model StripeProduct {
+model Buyer {
   id String @id @default(cuid())
-  repoId String @unique
-  productId String @unique
-  priceId String @unique
-  description String?
-  features String[]
-  repo Repo @relation(fields: [repoId], references: [id])
-  buyRequests BuyRequest[]
-}
-
-model BuyRequest {
-  id String @id @default(cuid())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
-  stripeProductId String @unique
-  stripePriceId String
-  // stripeCheckoutSessionId String
-  // stripePaymentIntentId String
-  // stripePaymentIntentClientSecret String
-  // stripePaymentMethodId String
-  isPaid Boolean @default(false)
-  stripeProduct StripeProduct @relation(fields: [stripeProductId], references: [id])
+  repo Repo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  repoId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orderId String?
+  order Order? 
+}
+
+model Order {
+  id String @id @default(cuid())
+  buyerId String @unique
+  orderId String @unique
+  amount Float
+  currency String
+  status String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  buyer Buyer @relation(fields: [buyerId], references: [id])
+  payments Payment[]
+}
+
+model Payment {
+  id String @id @default(cuid())
+  paymentId String @unique
+  orderId String
+  amount Float
+  currency String
+  status String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order Order @relation(fields: [orderId], references: [id])
 }
