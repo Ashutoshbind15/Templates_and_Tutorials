@@ -90,7 +90,7 @@ model Repo {
   students User[] @relation("StudentRepo")
   requesters User[] @relation("RequestRepo")
   repoOrg String?
-  buyers Buyer[]  
+  buyers Buyer[] 
   cost Int @default(0)
 }
 
@@ -115,7 +115,7 @@ model Order {
   status String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  buyer Buyer @relation(fields: [buyerId], references: [id])
+  buyer Buyer @relation(fields: [buyerId], references: [id], onDelete: Cascade)
   payments Payment[]
 }
 
@@ -128,5 +128,5 @@ model Payment {
   status String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  order Order @relation(fields: [orderId], references: [id])
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }

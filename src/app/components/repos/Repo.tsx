@@ -61,6 +61,13 @@ const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
 
         const verifyData = await verifyResponse.json().then((data) => data);
         console.log(verifyData);
+
+        if (verifyData) {
+          console.log("Payment success");
+          if (verifyData.paymentStatus === "captured") {
+            accessgrantHandler(uid as string);
+          }
+        }
       },
       prefill: {
         name: "Test Namse",
@@ -80,27 +87,14 @@ const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
       <p>
         description: {repo?.description} <br />
       </p>
-      <button onClick={accessgetHandler} className="bg-white text-black">
-        Req Access
-      </button>
 
       <div>
-        <h1>Requesters</h1>
-        {repo?.requesters?.map((req: any) => (
-          <div key={req.id}>
-            <p>{req.name}</p>
-            {isOwner &&
-              (hasConnectedPayments ? (
-                <button onClick={() => accessgrantHandler(req.id)}>
-                  Grant Access
-                </button>
-              ) : (
-                <button onClick={() => {}}>
-                  Connect To The Payment Gateway
-                </button>
-              ))}
-          </div>
-        ))}
+        {isOwner &&
+          (hasConnectedPayments ? (
+            <button onClick={() => {}}>View Stats</button>
+          ) : (
+            <button onClick={() => {}}>Connect To The Payment Gateway</button>
+          ))}
 
         {!isOwner && (
           <Button onClickf={() => buyHandler()} type="button">

@@ -61,6 +61,12 @@ export const GET = async (req: Request) => {
         });
       });
 
+      const oldRepos = repos.filter((repo: any) => {
+        return currUserRepos.some((userRepo) => {
+          return userRepo.id.toString() === repo.id.toString();
+        });
+      });
+
       console.log(`New Repos: `, newRepos);
 
       for (let newRepo of newRepos) {
@@ -72,6 +78,17 @@ export const GET = async (req: Request) => {
             ownerId: curruserid as string,
             url: newRepo.html_url,
             repoOrg: newRepo.owner.login,
+          },
+        });
+      }
+
+      // delete the old repos that are not in the new repos
+
+      for (let oldRepo of oldRepos) {
+        console.log(oldRepo.owner.login, oldRepo.name, oldRepo.html_url);
+        await prisma.repo.delete({
+          where: {
+            id: oldRepo.id.toString(),
           },
         });
       }
