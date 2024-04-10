@@ -91,6 +91,7 @@ model Repo {
   requesters User[] @relation("RequestRepo")
   repoOrg String?
   buyers Buyer[]  
+  cost Int @default(0)
 }
 
 model Buyer {
