@@ -2,6 +2,7 @@
 
 import { SessionProvider } from "next-auth/react";
 import Navbar from "./UI/Navbar";
+import { Toaster } from "./uilib/ui/sonner";
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -9,7 +10,9 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
       <nav>
         <Navbar />
       </nav>
-      {children}
+      <main>{children}</main>
+      <Toaster />
+      <footer></footer>
     </SessionProvider>
   );
 };

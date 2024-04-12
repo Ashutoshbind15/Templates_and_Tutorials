@@ -3,6 +3,7 @@ import axios from "axios";
 import Button from "../UI/Button";
 import { useSession } from "next-auth/react";
 import { loadRazorpayScript } from "@/app/lib/loadrazorpay";
+import { Avatar, AvatarFallback, AvatarImage } from "../uilib/ui/avatar";
 
 const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
   console.log(hasConnectedPayments, isOwner);

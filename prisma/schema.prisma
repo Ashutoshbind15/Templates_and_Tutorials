@@ -92,6 +92,7 @@ model Repo {
   repoOrg String?
   buyers Buyer[] 
   cost Int @default(0)
+  description String @default("Example Repo")
 }
 
 model Buyer {

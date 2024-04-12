@@ -4,17 +4,18 @@ export const loadRazorpayScript = (src: string) => {
     if (document.querySelector(`script[src="${src}"]`)) {
       console.log("Razorpay SDK already loaded.");
       // resolve with a number
-      resolve(1);
+      resolve();
       return;
     }
 
     // Create a script element
     const script = document.createElement("script");
     script.src = src;
+    script.type = "text/javascript";
     script.onload = () => {
       console.log("Razorpay SDK loaded.");
       // resolve with a number
-      resolve(1);
+      resolve();
     };
     script.onerror = () => {
       reject(new Error(`Failed to load script ${src}`));
