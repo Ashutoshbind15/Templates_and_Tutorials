@@ -4,7 +4,7 @@ export const loadRazorpayScript = (src: string) => {
     if (document.querySelector(`script[src="${src}"]`)) {
       console.log("Razorpay SDK already loaded.");
       // resolve with a number
-      resolve();
+      resolve(1);
       return;
     }
 
@@ -15,7 +15,7 @@ export const loadRazorpayScript = (src: string) => {
     script.onload = () => {
       console.log("Razorpay SDK loaded.");
       // resolve with a number
-      resolve();
+      resolve(2);
     };
     script.onerror = () => {
       reject(new Error(`Failed to load script ${src}`));

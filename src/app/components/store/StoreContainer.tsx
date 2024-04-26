@@ -86,7 +86,7 @@ const StoreContainer = ({
 
     console.log(options);
 
-    const paymentObject = new window.Razorpay(options);
+    const paymentObject = new (window as any).Razorpay(options);
     await paymentObject.open();
   };
 
@@ -138,6 +138,7 @@ const StoreContainer = ({
                 owner: { name: repo?.owner.name },
                 description: repo.description,
               }}
+              key={repo.id}
             />
           ))}
 
@@ -160,6 +161,7 @@ const StoreContainer = ({
                   buyerCard={true}
                   orderCreationHandler={orderCreationHandler}
                   paymentHandler={paymentHandler}
+                  key={repo.id}
                 />
               ))}
             </TabsContent>
@@ -194,6 +196,7 @@ const StoreContainer = ({
                   description: repo.description,
                 }}
                 ownerCard={true}
+                key={repo.id}
               />
             ))
           ) : (
@@ -214,6 +217,7 @@ const StoreContainer = ({
               }}
               buyerCard={true}
               hasPurchased={true}
+              key={repo.id}
               rerequestHandler={() =>
                 accessgrantHandler(sessData?.data?.user?.id as string, repo.id)
               }

@@ -34,6 +34,7 @@
     "eslint": "8.48.0",
     "eslint-config-next": "13.4.19",
     "formik": "^2.4.5",
+    "framer-motion": "^11.0.28",
     "lucide-react": "^0.367.0",
     "mongoose": "^8.3.0",
     "next": "13.4.19",
