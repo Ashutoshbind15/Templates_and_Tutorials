@@ -39,33 +39,27 @@ export default async function Home() {
   });
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div>Repos</div>
-      {posts.map((post: any) => (
-        <Post
-          description={post.content || "desc"}
-          title={post.title}
-          id={post.id.toString()}
-          key={post.id}
-        />
-      ))}
+    <>
+      <main className="flex min-h-screen flex-col items-center justify-between p-24">
+        <div>Repos</div>
 
-      <div className="p-2 border-2 border-white">
-        {populatedRepos.map((repo: any) => {
-          return (
-            <Repo
-              repo={repo}
-              key={repo.id}
-              hasConnectedPayments={repo.hasConnectedPayments}
-              isOwner={repo.isOwner}
-            />
-          );
-        })}
-      </div>
+        <div className="p-2 border-2 border-white">
+          {populatedRepos.map((repo: any) => {
+            return (
+              <Repo
+                repo={repo}
+                key={repo.id}
+                hasConnectedPayments={repo.hasConnectedPayments}
+                isOwner={repo.isOwner}
+              />
+            );
+          })}
+        </div>
 
-      <PostForm />
-      <SignInC />
-      <SignOut />
-    </main>
+        <PostForm />
+        <SignInC />
+        <SignOut />
+      </main>
+    </>
   );
 }

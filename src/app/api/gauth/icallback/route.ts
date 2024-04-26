@@ -55,23 +55,45 @@ export const GET = async (req: Request) => {
       const res = await octo?.request("GET /installation/repositories");
       const repos = res.data.repositories;
 
+      // Fetch current user's repositories from database
+      const currUserRepos = await prisma.repo.findMany({
+        where: {
+          ownerId: session.user.id,
+        },
+      });
+
+      // Filter new repositories
       const newRepos = repos.filter((repo: any) => {
         return !currUserRepos.some((userRepo) => {
           return userRepo.id.toString() === repo.id.toString();
         });
       });
 
-      console.log(`New Repos: `, newRepos);
+      // Filter removed repositories
+      const removedRepos = currUserRepos.filter((userRepo) => {
+        return !repos.some((repo: any) => {
+          return userRepo.id.toString() === repo.id.toString();
+        });
+      });
 
+      // Create new repositories in the database
       for (let newRepo of newRepos) {
-        console.log(newRepo.owner.login, newRepo.name, newRepo.html_url);
         await prisma.repo.create({
           data: {
             id: newRepo.id.toString(),
             title: newRepo.name,
-            ownerId: curruserid as string,
+            ownerId: session.user.id,
             url: newRepo.html_url,
             repoOrg: newRepo.owner.login,
+          },
+        });
+      }
+
+      // Delete removed repositories from the database
+      for (let removedRepo of removedRepos) {
+        await prisma.repo.delete({
+          where: {
+            id: removedRepo.id,
           },
         });
       }
