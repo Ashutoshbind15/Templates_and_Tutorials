@@ -3,7 +3,7 @@ import prisma from "@/app/lib/prisma";
 import { App, Octokit } from "octokit";
 import { NextResponse } from "next/server";
 import { options1 } from "../../auth/[...nextauth]/options";
-import { getUserDetailsFromUserId } from "@/app/lib/githubapi";
+import axios from "axios";
 
 export const POST = async (req: Request) => {
   const jsonreq = await req.json();
@@ -43,8 +43,19 @@ export const POST = async (req: Request) => {
       const repoName = repo?.title;
       const repoOrg = repo?.repoOrg;
 
-      const requester = await getUserDetailsFromUserId(
-        sess?.user?.id as string
+      const uid = sess?.user?.id;
+
+      const providerAccount = await prisma.account.findFirst({
+        where: {
+          userId: uid,
+          provider: "github",
+        },
+      });
+
+      const providerAccountId = providerAccount?.providerAccountId;
+
+      const requester = await axios.get(
+        `https://api.github.com/user/${providerAccountId}`
       );
       const username = requester?.data.login;
       const octokit = await app.getInstallationOctokit(+installation_id);

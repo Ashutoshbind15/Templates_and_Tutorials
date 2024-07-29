@@ -10,16 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String  
-  content   String?  @db.Text
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-}
-
  enum Role {
    USER
    CREATOR
@@ -39,10 +29,6 @@ model Account {
   scope              String?
   id_token           String?  @db.Text
   session_state      String?
-  gh_app_access_token String? @db.Text
-  gh_app_refresh_token String? @db.Text
-  gh_app_access_token_expires_at DateTime?
-  gh_app_refresh_token_expires_at DateTime?
   gh_installation_ids String[]
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
@@ -64,14 +50,13 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  posts       Post[]
   role Role @default(USER)
   uploadedRepos Repo[]
   paymentGatewayAccountId String?
   paymentGatewayAccountOnBoarded Boolean @default(false)
   learningRepos Repo[] @relation("StudentRepo")
   requestedRepos Repo[] @relation("RequestRepo")
-  buys Buyer[]
+  buys Buyer[] 
 }
 
 model VerificationToken {
@@ -93,6 +78,7 @@ model Repo {
   buyers Buyer[] 
   cost Int @default(0)
   description String @default("Example Repo")
+  metadata RepoMetadata?
 }
 
 model Buyer {
@@ -104,7 +90,7 @@ model Buyer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   orderId String?
-  order Order? 
+  order Order?
 }
 
 model Order {
@@ -130,4 +116,14 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model RepoMetadata {
+  id String @id @default(cuid())
+  repoId String @unique
+  repo Repo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  title String
+  description String
+  thumbnail String
+  videoUrl String?
 }

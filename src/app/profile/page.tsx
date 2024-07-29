@@ -11,8 +11,6 @@ const ProfilePage = async () => {
   return (
     <div className="flex py-20 px-20 items-center">
       <div className="w-1/2">
-        {/* <Image src={user?.user?.image}>{(user as any)?.name}</Image> */}
-
         {user && user?.image && (
           <Image src={user?.image} width={300} height={300} alt="profile" />
         )}
@@ -21,7 +19,7 @@ const ProfilePage = async () => {
         <div>{user?.name}</div>
         <div>{user?.email}</div>
         <div>{user?.role}</div>
-        <ChangeRole body={"Change Role"} className="" />
+        <ChangeRole className="" />
       </div>
     </div>
   );

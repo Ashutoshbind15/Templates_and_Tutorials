@@ -4,13 +4,7 @@ import { useRouter } from "next/navigation";
 import Button from "../Button";
 import { useSession } from "next-auth/react";
 
-const ChangeRole = ({
-  body,
-  className,
-}: {
-  body: string;
-  className: string;
-}) => {
+const ChangeRole = ({ className }: { className: string }) => {
   const { data: session } = useSession();
   const rtr = useRouter();
 
@@ -21,18 +15,16 @@ const ChangeRole = ({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        role: session?.user?.role === "ADMIN" ? "USER" : "ADMIN",
+        role: session?.user?.role === "USER" ? "CREATOR" : "USER",
       }),
     });
-    const data = await res.json();
-    console.log(data);
 
     rtr.push("/");
   };
 
   return (
     <Button type="button" onClickf={roleChangeHandler} className={className}>
-      {body}
+      Change Role to {session?.user?.role === "USER" ? "CREATOR" : "USER"}
     </Button>
   );
 };
