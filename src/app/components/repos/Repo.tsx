@@ -3,34 +3,38 @@ import axios from "axios";
 import Button from "../UI/Button";
 import { useSession } from "next-auth/react";
 import { loadRazorpayScript } from "@/app/lib/loadrazorpay";
-import { Avatar, AvatarFallback, AvatarImage } from "../uilib/ui/avatar";
+import { toast } from "sonner";
 
-const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
-  console.log(hasConnectedPayments, isOwner);
-
+const Repo = ({ repo, isOwner, owner }: any) => {
   const sess = useSession();
   const uid = sess?.data?.user?.id;
 
   const accessgrantHandler = async (userId: string) => {
+    toast.loading("Granting access", {
+      duration: 100000,
+      id: "granting",
+    });
     const { data } = await axios.post("/api/gauth/grantaccess", {
       userId: userId,
       repoId: repo.id,
     });
+    toast.dismiss("granting");
     console.log(data);
-  };
-
-  const accessgetHandler = async () => {
-    const { data } = await axios.post("/api/gauth/reqaccess", {
-      repoId: repo.id,
-    });
-    console.log(data);
+    toast.success("Access granted");
   };
 
   const buyHandler = async () => {
+    toast.loading("Initiating payment", {
+      duration: 100000,
+      id: "initiating",
+    });
+
     const { data } = await axios.post("/api/gauth/repos/orders", {
       userId: uid,
       repoId: repo.id,
     });
+
+    toast.dismiss("initiating");
 
     const scriptSrc = "https://checkout.razorpay.com/v1/checkout.js";
     await loadRazorpayScript(scriptSrc);
@@ -46,7 +50,11 @@ const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
       order_id: order.id,
       handler: async function (response: any) {
         // Handle payment success, send details to server for verification
-        console.log(response);
+
+        toast.loading("Verifying payment", {
+          duration: 100000,
+          id: "verifying",
+        });
 
         const verifyResponse = await fetch("/api/payment/verify", {
           method: "POST",
@@ -61,7 +69,6 @@ const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
         });
 
         const verifyData = await verifyResponse.json().then((data) => data);
-        console.log(verifyData);
 
         if (verifyData) {
           console.log("Payment success");
@@ -69,6 +76,9 @@ const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
             accessgrantHandler(uid as string);
           }
         }
+
+        toast.dismiss("verifying");
+        toast.success("Payment success");
       },
       prefill: {
         name: "Test Namse",
@@ -84,22 +94,17 @@ const Repo = ({ repo, hasConnectedPayments, isOwner }: any) => {
   return (
     <div className="my-2 border-b-2 border-white" key={repo?.id}>
       <h1>repo : {repo.title}</h1>
-      <h1>owner : {JSON.stringify(repo?.owner?.name)}</h1>
+      <h1>owner : {owner}</h1>
       <p>
         description: {repo?.description} <br />
       </p>
 
       <div>
-        {isOwner &&
-          (hasConnectedPayments ? (
-            <button onClick={() => {}}>View Stats</button>
-          ) : (
-            <button onClick={() => {}}>Connect To The Payment Gateway</button>
-          ))}
+        {isOwner && <button onClick={() => {}}>View Stats</button>}
 
         {!isOwner && (
           <Button onClickf={() => buyHandler()} type="button">
-            Buy now
+            {repo.hasBought ? "Bought" : "Buy"}
           </Button>
         )}
       </div>

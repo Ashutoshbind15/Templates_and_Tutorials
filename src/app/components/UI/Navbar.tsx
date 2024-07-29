@@ -15,9 +15,18 @@ const Navbar = () => {
     <div className="flex items-center justify-between py-2 px-6 font-semibold text-xl">
       <Link href={"/"}>Templates & Tutorials</Link>
       <div className="flex items-center">
-        <Link href={"/addrepo"} className="mr-3">
-          Add Repo
-        </Link>
+        {user?.role === "CREATOR" && (
+          <Link href={"/editrepo"} className="mr-3">
+            Edit Repo Store
+          </Link>
+        )}
+
+        {user?.role === "USER" && (
+          <Link href={"/profile"} className="mr-3">
+            Become a Creator
+          </Link>
+        )}
+
         {user && user.name?.length ? (
           <Link
             href={"/profile"}

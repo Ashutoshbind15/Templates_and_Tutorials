@@ -14,7 +14,7 @@ export const POST = async (req: NextRequest) => {
     const sess = await getServerSession(options1);
     const uid = sess?.user?.id;
 
-    // update the field providerAccountId in the user table
+    // update the field provider AccountId in the user table
 
     await prisma.user.update({
       where: {

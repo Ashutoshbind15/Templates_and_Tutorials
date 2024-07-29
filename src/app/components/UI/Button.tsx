@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 export default function Button({
   onClickf,
   className,
@@ -8,7 +10,7 @@ export default function Button({
 }: {
   onClickf?: any;
   className?: string;
-  children?: string;
+  children?: React.ReactNode;
   type: "submit" | "button";
 }) {
   return (

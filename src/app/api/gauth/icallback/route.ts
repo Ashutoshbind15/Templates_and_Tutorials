@@ -6,7 +6,6 @@ import { App } from "octokit";
 
 export const GET = async (req: Request) => {
   const url = new URL(req.url as string);
-  console.log(url);
   const installation_id = url.searchParams.get("installation_id");
   const session = await getServerSession(options1);
 
@@ -19,17 +18,11 @@ export const GET = async (req: Request) => {
     });
 
     const curruserid = session?.user.id;
-    const currUserRepos = await prisma.repo.findMany({
-      where: {
-        ownerId: curruserid,
-      },
-    });
-
-    const hasInstallation = curruserinstallationid?.gh_installation_ids.length;
-
     if (!curruserid) {
       return NextResponse.json({ error: "User not found" }, { status: 401 });
     }
+
+    const hasInstallation = curruserinstallationid?.gh_installation_ids.length;
 
     if (!hasInstallation) {
       await prisma.account.updateMany({
@@ -99,5 +92,5 @@ export const GET = async (req: Request) => {
       }
     }
   }
-  return NextResponse.redirect(process.env.URL as string);
+  return NextResponse.redirect((process.env.URL as string) + "/profile");
 };
