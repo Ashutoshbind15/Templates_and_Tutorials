@@ -4,6 +4,7 @@ import Button from "../UI/Button";
 import { useSession } from "next-auth/react";
 import { loadRazorpayScript } from "@/app/lib/loadrazorpay";
 import { toast } from "sonner";
+import Image from "next/image";
 
 const Repo = ({ repo, isOwner, owner }: any) => {
   const sess = useSession();
@@ -92,21 +93,41 @@ const Repo = ({ repo, isOwner, owner }: any) => {
   };
 
   return (
-    <div className="my-2 border-b-2 border-white" key={repo?.id}>
-      <h1>repo : {repo.title}</h1>
-      <h1>owner : {owner}</h1>
-      <p>
-        description: {repo?.description} <br />
-      </p>
+    <div className="w-1/3 px-3" key={repo?.id}>
+      <div className="w-full border-4 border-white rounded-xl py-6 px-2 flex flex-col items-center">
+        <Image
+          src={repo?.thumbnail}
+          alt={repo?.title}
+          width={300}
+          height={300}
+          className="mb-6"
+        />
 
-      <div>
-        {isOwner && <button onClick={() => {}}>View Stats</button>}
+        <div className="mb-4">
+          <h1>repo : {repo.title}</h1>
+          <h1>owner : {owner}</h1>
+          <p>
+            description: {repo?.description} <br />
+          </p>
+        </div>
 
-        {!isOwner && (
-          <Button onClickf={() => buyHandler()} type="button">
-            {repo.hasBought ? "Bought" : "Buy"}
-          </Button>
-        )}
+        <div className="w-full flex justify-center gap-x-3 items-center">
+          {isOwner && (
+            <Button onClickf={() => {}} type="button" className="w-3/4">
+              View Stats
+            </Button>
+          )}
+
+          {!isOwner && (
+            <Button
+              onClickf={() => buyHandler()}
+              type="button"
+              className="w-3/4"
+            >
+              {repo.hasBought ? "Bought" : "Buy"}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

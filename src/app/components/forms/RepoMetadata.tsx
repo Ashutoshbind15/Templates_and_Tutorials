@@ -24,6 +24,7 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
   const [isMetadata, setIsMetadata] = useState(false);
+  const [cost, setCost] = useState(0);
 
   console.log(isMetadata);
 
@@ -51,11 +52,9 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
     <div>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="outline">
-            {isMetadata ? "Edit metadata" : "Add metadata"}
-          </Button>
+          <Button>{isMetadata ? "Edit metadata" : "Add metadata"}</Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] text-black">
           <DialogHeader>
             <DialogTitle>
               {isMetadata ? "Edit metadata" : "Add metadata"}
@@ -65,6 +64,7 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
               Make changes to your profile here. Click save when youre done.
             </DialogDescription>
           </DialogHeader>
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="title" className="text-right">
@@ -90,6 +90,20 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="cost" className="text-right">
+                Cost
+              </Label>
+              <Input
+                id="cost"
+                defaultValue="0"
+                className="col-span-3"
+                value={cost}
+                onChange={(e) => setCost(+e.target.value)}
+              />
+            </div>
+
             <UploadButton
               endpoint="imageUploader"
               onClientUploadComplete={(res) => {
@@ -101,6 +115,7 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
                 // Do something with the error.
                 alert(`ERROR! ${error.message}`);
               }}
+              className="ut-button:bg-zinc-950 ut-readying:bg-zinc-950"
             />
           </div>
           <DialogFooter>
@@ -118,12 +133,14 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
                     title,
                     description,
                     url,
+                    cost,
                   });
                 } else {
                   await axios.post(`/api/metadata`, {
                     title,
                     description,
                     url,
+                    cost,
                     repoId,
                   });
                 }

@@ -65,8 +65,8 @@ export default async function Home() {
 
   return (
     <>
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <div className="p-2 border-2 border-white">
+      <main className="p-24 bg-zinc-950 text-white">
+        <div className="flex flex-wrap gap-y-3 items-center">
           {populatedRepos.map((repo: any) => {
             if (repo.hasMetadata === false || !repo.hasConnectedPayments)
               return null;

@@ -34,7 +34,7 @@ export const PUT = async (
   try {
     const data = await req.json();
 
-    const { title, description, url } = data;
+    const { title, description, url, cost } = data;
 
     const metadata = await prisma.repoMetadata.update({
       where: {
@@ -44,6 +44,15 @@ export const PUT = async (
         title,
         description,
         thumbnail: url,
+      },
+    });
+
+    await prisma.repo.update({
+      where: {
+        id: params.id,
+      },
+      data: {
+        cost: +cost,
       },
     });
 

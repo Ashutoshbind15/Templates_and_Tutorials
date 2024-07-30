@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head></head>
-      <body className={inter.className}>
+      <body className="bg-zinc-950 text-white min-h-screen">
         <Providers>{children}</Providers>
       </body>
     </html>
