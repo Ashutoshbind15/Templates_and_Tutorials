@@ -73,7 +73,6 @@ export const POST = async (req: Request) => {
             },
           }
         );
-        console.log(res);
         return NextResponse.json({ msg: "success", status: 200 });
       } else {
         console.log("err");

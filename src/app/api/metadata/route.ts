@@ -13,14 +13,6 @@ export const POST = async (req: NextRequest) => {
         description,
         thumbnail: url,
         repoId: repoId.toString(),
-      },
-    });
-
-    await prisma.repo.update({
-      where: {
-        id: repoId,
-      },
-      data: {
         cost: +cost,
       },
     });

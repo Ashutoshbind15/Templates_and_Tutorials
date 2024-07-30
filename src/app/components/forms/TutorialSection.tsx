@@ -18,37 +18,41 @@ import { UploadButton } from "@/app/lib/uploadthing";
 import { toast } from "sonner";
 import axios from "axios";
 
-const RepoMetadata = ({ data, isMetadata, repoId }: any) => {
-  const [title, setTitle] = useState(data?.title);
-  const [description, setDescription] = useState(data?.description);
-  const [url, setUrl] = useState(data?.thumbnail);
-  const [cost, setCost] = useState(data?.cost);
+const TutorialSectionForm = ({
+  repoId,
+  setSections,
+}: {
+  repoId: string;
+  setSections: any;
+}) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [url, setUrl] = useState("");
+  const [open, setOpen] = useState(false);
 
   return (
     <div>
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button>{isMetadata ? "Edit metadata" : "Add metadata"}</Button>
+          <Button>Add section</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] text-black">
           <DialogHeader>
-            <DialogTitle>
-              {isMetadata ? "Edit metadata" : "Add metadata"}
-            </DialogTitle>
+            <DialogTitle>New section</DialogTitle>
 
             <DialogDescription>
-              Make changes to your profile here. Click save when youre done.
+              Create a new section for your tutorial here.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="title" className="text-right">
-                title
+                Title
               </Label>
               <Input
                 id="title"
-                placeholder="xyz course"
+                placeholder="xyz section"
                 className="col-span-3"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -56,32 +60,19 @@ const RepoMetadata = ({ data, isMetadata, repoId }: any) => {
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="description" className="text-right">
-                description
+                Description
               </Label>
               <Input
                 id="description"
-                placeholder="course description"
+                placeholder="section description"
                 className="col-span-3"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="cost" className="text-right">
-                Cost
-              </Label>
-              <Input
-                id="cost"
-                defaultValue="0"
-                className="col-span-3"
-                value={cost}
-                onChange={(e) => setCost(+e.target.value)}
-              />
-            </div>
-
             <UploadButton
-              endpoint="imageUploader"
+              endpoint="videoUploader"
               onClientUploadComplete={(res) => {
                 // Do something with the response
                 console.log("Files: ", res);
@@ -103,33 +94,19 @@ const RepoMetadata = ({ data, isMetadata, repoId }: any) => {
                   duration: 10000,
                 });
 
-                if (isMetadata) {
-                  if (url.length) {
-                    await axios.put(`/api/metadata/${repoId}`, {
-                      title,
-                      description,
-                      url,
-                      cost,
-                    });
-                  } else {
-                    await axios.put(`/api/metadata/${repoId}`, {
-                      title,
-                      description,
-                      cost,
-                    });
-                  }
-                } else {
-                  await axios.post(`/api/metadata`, {
-                    title,
-                    description,
-                    url,
-                    cost,
-                    repoId,
-                  });
-                }
+                const { data } = await axios.post(`/api/tutorial/section`, {
+                  title,
+                  description,
+                  url,
+                  repoId,
+                });
+
+                setSections((sec: any) => [...sec, data]);
 
                 toast.dismiss("saving");
                 toast.success("Changes saved");
+
+                setOpen(false);
               }}
             >
               Save changes
@@ -141,4 +118,4 @@ const RepoMetadata = ({ data, isMetadata, repoId }: any) => {
   );
 };
 
-export default RepoMetadata;
+export default TutorialSectionForm;

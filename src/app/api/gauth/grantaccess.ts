@@ -9,7 +9,6 @@ export const POST = async (req: Request) => {
   // const { uid }: { uid: string } = jsonreq;
   const user = "RandomUser";
   const sess = await getServerSession(options1);
-  console.log("gds");
 
   if (sess && sess.user) {
     const githubacc = await prisma.account.findFirst({
@@ -30,8 +29,6 @@ export const POST = async (req: Request) => {
       let octo;
       if (installationId?.length)
         octo = await app.getInstallationOctokit(+installationId);
-
-      console.log("svr");
 
       return NextResponse.json({ msg: "success", status: 200 });
     }

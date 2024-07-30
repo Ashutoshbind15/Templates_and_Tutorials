@@ -20,10 +20,16 @@ export const POST = async (req: NextRequest) => {
     where: {
       id: repoId,
     },
+    include: {
+      metadata: true,
+    },
   });
 
-  if (!repo)
-    return NextResponse.json({ msg: "Repo not found" }, { status: 404 });
+  if (!repo || !repo.metadata)
+    return NextResponse.json(
+      { msg: "Repo or metadata not found" },
+      { status: 404 }
+    );
 
   const dbUser = await prisma.user.findUnique({
     where: {
@@ -37,13 +43,13 @@ export const POST = async (req: NextRequest) => {
   const payment_gateway_account_id = dbUser?.paymentGatewayAccountId;
 
   const order = await rzInstance.orders.create({
-    amount: repo?.cost,
+    amount: repo?.metadata?.cost,
     currency: "INR",
     payment_capture: true,
     transfers: [
       {
         account: payment_gateway_account_id as string,
-        amount: (repo?.cost / 100) * 80,
+        amount: (repo?.metadata?.cost / 100) * 80,
         currency: "INR",
       },
     ],

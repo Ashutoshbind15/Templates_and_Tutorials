@@ -12,6 +12,20 @@ export const GET = async (
       where: {
         repoId: id,
       },
+      include: {
+        repo: {
+          include: {
+            owner: {
+              select: {
+                email: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+        sections: true,
+      },
     });
 
     if (metadata) {
@@ -33,30 +47,34 @@ export const PUT = async (
 ) => {
   try {
     const data = await req.json();
+    const { title, description, cost } = data;
 
-    const { title, description, url, cost } = data;
-
-    const metadata = await prisma.repoMetadata.update({
-      where: {
-        repoId: params.id,
-      },
-      data: {
-        title,
-        description,
-        thumbnail: url,
-      },
-    });
-
-    await prisma.repo.update({
-      where: {
-        id: params.id,
-      },
-      data: {
-        cost: +cost,
-      },
-    });
-
-    return NextResponse.json(metadata, { status: 200 });
+    if (data.url) {
+      const metadata = await prisma.repoMetadata.update({
+        where: {
+          repoId: params.id,
+        },
+        data: {
+          title,
+          description,
+          cost: +cost,
+          thumbnail: data.url,
+        },
+      });
+      return NextResponse.json(metadata, { status: 200 });
+    } else {
+      const metadata = await prisma.repoMetadata.update({
+        where: {
+          repoId: params.id,
+        },
+        data: {
+          title,
+          description,
+          cost: +cost,
+        },
+      });
+      return NextResponse.json(metadata, { status: 200 });
+    }
   } catch (error) {
     return NextResponse.json({ error }, { status: 500 });
   }

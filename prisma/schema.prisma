@@ -18,7 +18,7 @@ datasource db {
 
 model Account {
   id                 String  @id @default(cuid())
-  userId             String
+  userId             String  
   type               String
   provider           String
   providerAccountId  String
@@ -54,8 +54,6 @@ model User {
   uploadedRepos Repo[]
   paymentGatewayAccountId String?
   paymentGatewayAccountOnBoarded Boolean @default(false)
-  learningRepos Repo[] @relation("StudentRepo")
-  requestedRepos Repo[] @relation("RequestRepo")
   buys Buyer[] 
 }
 
@@ -72,12 +70,8 @@ model Repo {
   url String
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
-  students User[] @relation("StudentRepo")
-  requesters User[] @relation("RequestRepo")
   repoOrg String?
   buyers Buyer[] 
-  cost Int @default(0)
-  description String @default("Example Repo")
   metadata RepoMetadata?
 }
 
@@ -126,4 +120,15 @@ model RepoMetadata {
   description String
   thumbnail String
   videoUrl String?
+  cost Int @default(10000)
+  sections section[]
+}
+
+model section {
+  id String @id @default(cuid())
+  title String
+  description String?
+  url String
+  repo RepoMetadata @relation(fields: [repoId], references: [repoId], onDelete: Cascade)
+  repoId String
 }
