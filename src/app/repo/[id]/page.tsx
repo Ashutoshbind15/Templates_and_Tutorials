@@ -13,6 +13,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/app/components/uilib/ui/resizable";
+import { VideoOffIcon } from "lucide-react";
 import React, { useEffect } from "react";
 
 const RepoPage = ({ params }: { params: { id: string } }) => {
@@ -37,13 +38,18 @@ const RepoPage = ({ params }: { params: { id: string } }) => {
       <ResizablePanel className="px-6 gap-y-4">
         <span className="text-lg font-semibold">{repo?.title}</span>
 
-        {sections?.length && (
+        {sections?.length ? (
           <Player
             url={(sections[selectedSection] as any)?.url || repo?.repo?.url}
           />
-        )}
+        ) : null}
 
-        {!sections?.length && <div className="h-96">No sections found</div>}
+        {!sections?.length && (
+          <div className="h-96 flex flex-col items-center justify-center gap-y-8">
+            <div>No sections found</div>
+            <VideoOffIcon className="h-16 w-16" />
+          </div>
+        )}
 
         <div className="px-3 border-b-2 border-white mt-4">
           <div className="">

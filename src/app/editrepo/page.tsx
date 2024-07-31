@@ -81,7 +81,7 @@ const AddRepoPage = async () => {
               ))}
             </div>
           ) : (
-            "No repos"
+            <div className="text-2xl mb-6">No repositories added</div>
           ))}
 
         <Link
