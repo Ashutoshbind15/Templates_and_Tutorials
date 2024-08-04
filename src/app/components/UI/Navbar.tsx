@@ -58,6 +58,10 @@ const Navbar = () => {
                 <div className="block px-4 py-2 text-gray-800 hover:bg-gray-200 cursor-pointer">
                   <ChangeRole className="" />
                 </div>
+
+                <div className="block px-4 py-2 text-gray-800 hover:bg-gray-200">
+                  <Link href={"/orders"}>Orders</Link>
+                </div>
                 <div
                   className="flex items-center px-4 py-2 text-gray-800 hover:bg-gray-200 cursor-pointer gap-x-3"
                   onClick={() => signOut()}

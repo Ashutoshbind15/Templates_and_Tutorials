@@ -5,17 +5,26 @@ import RedirectButton from "../components/UI/Buttons/Redirect";
 import { getServerSession } from "next-auth";
 import { options1 } from "../api/auth/[...nextauth]/options";
 import RepoPaginator from "../components/repos/RepoPaginator";
+import SearchAndFilter from "../components/repos/SearchAndFilter";
 
 const RepoPage = async ({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-  console.log(searchParams);
-
   const pageNumber = searchParams.page
     ? parseInt(searchParams.page as string)
     : 1;
+
+  const pageTags = searchParams.tags
+    ? (searchParams.tags as string).split(",")
+    : [];
+  const repoQuery = searchParams.q;
+
+  console.log(pageTags);
+  console.log(repoQuery);
+  console.log(pageNumber);
+
   const take = 2;
   const skip = (pageNumber - 1) * take;
 
@@ -59,7 +68,6 @@ const RepoPage = async ({
     },
   });
 
-  console.log(totalReposWithMetadata);
   const totalPages = Math.ceil(totalReposWithMetadata / take);
 
   const sess = await getServerSession(options1);
@@ -105,6 +113,7 @@ const RepoPage = async ({
 
   return (
     <div className="p-12">
+      <SearchAndFilter pageNum={pageNumber.toString()} />
       <div className="flex flex-wrap gap-y-3 items-center mb-8">
         {populatedRepos.map((repo: any) => {
           return (

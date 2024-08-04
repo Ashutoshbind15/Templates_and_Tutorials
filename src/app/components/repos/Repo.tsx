@@ -124,6 +124,17 @@ const Repo = ({ repo, isOwner, owner, avatar }: any) => {
           </p>
         </div>
 
+        <div className="mb-4 flex flex-wrap items-center">
+          {repo.tags.map((tag: string) => (
+            <span
+              key={tag}
+              className="bg-white text-gray-950 font-semibold rounded-lg text-md font-sans mr-2 py-1 px-4"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
         <div className="w-full flex justify-center gap-x-3 items-center">
           {isOwner && (
             <Button

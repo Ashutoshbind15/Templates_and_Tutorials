@@ -9,24 +9,45 @@ import {
 } from "@/app/components/uilib/ui/avatar";
 import { Button } from "@/app/components/uilib/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/app/components/uilib/ui/dialog";
+import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/app/components/uilib/ui/resizable";
+import { UploadButton } from "@/app/lib/uploadthing";
 import { VideoOffIcon } from "lucide-react";
 import React, { useEffect } from "react";
+import { toast } from "sonner";
+import { Rating } from "react-simple-star-rating";
+import { Input } from "@/app/components/uilib/ui/input";
 
 const RepoPage = ({ params }: { params: { id: string } }) => {
   const [repo, setRepo] = React.useState<any>(null);
   const [selectedSection, setSelectedSection] = React.useState(0);
   const [sections, setSections] = React.useState([]);
+  const [rating, setRating] = React.useState(0);
+  const [ratingDescription, setRatingDescription] = React.useState("");
+  const [isOwner, setIsOwner] = React.useState(false);
+  console.log("isOwner", isOwner);
+
+  const handleRating = (rate: number) => {
+    setRating(rate);
+  };
 
   useEffect(() => {
     fetch(`/api/metadata/${params.id}`)
       .then((res) => res.json())
       .then((data) => {
-        setRepo(data);
-        setSections(data.sections);
+        setRepo(data?.metadata);
+        setSections(data?.metadata.sections);
+        setIsOwner(data?.isOwner);
       });
   }, [params.id]);
 
@@ -65,6 +86,40 @@ const RepoPage = ({ params }: { params: { id: string } }) => {
                 <AvatarFallback>{repo?.repo?.owner?.name[0]}</AvatarFallback>
               </Avatar>
             </div>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>Rate</Button>
+              </DialogTrigger>
+
+              <DialogContent className="sm:max-w-[425px] text-black">
+                <DialogHeader>
+                  <DialogTitle>Rate</DialogTitle>
+                  <DialogDescription>
+                    Rate the materials and the repo template
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="my-3 gap-y-4 flex flex-col items-center border-y-2 border-gray-400 py-6">
+                  <Rating onClick={handleRating} />
+
+                  <Input
+                    value={ratingDescription}
+                    onChange={(e) => setRatingDescription(e.target.value)}
+                    placeholder="Add a description"
+                  />
+                </div>
+
+                <Button
+                  onClick={() => {
+                    console.log("Rating: ", rating);
+                    console.log("Description: ", ratingDescription);
+                  }}
+                >
+                  Submit
+                </Button>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </ResizablePanel>
@@ -78,17 +133,59 @@ const RepoPage = ({ params }: { params: { id: string } }) => {
             <Button>Action</Button>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto w-full px-3">
             {sections?.map((section: any, idx: number) => (
               <div
                 key={section.id}
-                className={`flex items-center justify-between px-3 py-2 ${
+                className={`flex items-center justify-between px-3 py-4 w-full border-y-2 border-gray-500 mb-2 ${
                   selectedSection === idx ? "bg-gray-800" : ""
                 }`}
                 onClick={() => setSelectedSection(idx)}
               >
-                <span>{section.title}</span>
-                <span>{section.url}</span>
+                <div className="flex flex-col flex-1">
+                  <span className="font-semibold">{section.title}</span>
+                  <span className="text-sm">{section.description}</span>
+                </div>
+
+                {!section?.sectionNotesUrl?.length ? (
+                  <div className="flex flex-col items-center">
+                    <span className="my-2 underline">Add notes below</span>
+                    <UploadButton
+                      endpoint="notesUploader"
+                      input={{ sid: section.id }}
+                      onClientUploadComplete={(res) => {
+                        // Do something with the response
+                        console.log("Files: ", res);
+
+                        // Update the section with the notes
+
+                        const updatedSections = sections.map((s: any) => {
+                          if (s.id === section.id) {
+                            return {
+                              ...s,
+                              sectionNotesUrl: res[0].url,
+                            };
+                          }
+
+                          return s;
+                        });
+
+                        setSections(updatedSections as any);
+                        toast.success("Notes uploaded successfully");
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <Button asChild>
+                    <a
+                      href={section?.sectionNotesUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View notes
+                    </a>
+                  </Button>
+                )}
               </div>
             ))}
           </div>

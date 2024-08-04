@@ -1,5 +1,8 @@
 import prisma from "@/app/lib/prisma";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import { options1 } from "../../auth/[...nextauth]/options";
+import { hasAccess, isRepoOwner } from "@/app/lib/apihelpers";
 
 export const GET = async (
   req: NextRequest,
@@ -7,6 +10,19 @@ export const GET = async (
 ) => {
   try {
     const { id } = params;
+    const sess = await getServerSession(options1);
+
+    if (!sess || !sess.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const uid = sess.user.id;
+
+    const doesUserHaveAccess = hasAccess(id, uid);
+
+    if (!doesUserHaveAccess) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const metadata = await prisma.repoMetadata.findUnique({
       where: {
@@ -28,8 +44,10 @@ export const GET = async (
       },
     });
 
+    const isOwner = await isRepoOwner(id, uid);
+
     if (metadata) {
-      return NextResponse.json(metadata, { status: 200 });
+      return NextResponse.json({ metadata, isOwner }, { status: 200 });
     } else {
       return NextResponse.json({ error: "No metadata found" }, { status: 404 });
     }
@@ -47,7 +65,7 @@ export const PUT = async (
 ) => {
   try {
     const data = await req.json();
-    const { title, description, cost } = data;
+    const { title, description, cost, tags } = data;
 
     if (data.url) {
       const metadata = await prisma.repoMetadata.update({
@@ -59,6 +77,7 @@ export const PUT = async (
           description,
           cost: +cost,
           thumbnail: data.url,
+          tags: tags,
         },
       });
       return NextResponse.json(metadata, { status: 200 });
@@ -71,6 +90,7 @@ export const PUT = async (
           title,
           description,
           cost: +cost,
+          tags: tags,
         },
       });
       return NextResponse.json(metadata, { status: 200 });

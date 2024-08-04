@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Button from "../Button";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 const ChangeRole = ({ className }: { className: string }) => {
@@ -25,9 +25,11 @@ const ChangeRole = ({ className }: { className: string }) => {
       }),
     });
 
-    toast.dismiss("role-change");
+    signOut();
 
-    rtr.push("/");
+    toast.dismiss("role-change");
+    toast.success("Role changed successfully. Please sign in again");
+    rtr.push("/api/auth/signin");
   };
 
   return (
