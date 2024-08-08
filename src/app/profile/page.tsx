@@ -9,17 +9,16 @@ const ProfilePage = async () => {
   const user = sess?.user;
 
   return (
-    <div className="flex py-20 px-20 items-center">
+    <div className="flex flex-col my-20 p-4 border-2 border-white w-1/3 items-center">
       <div className="w-1/2">
         {user && user?.image && (
           <Image src={user?.image} width={300} height={300} alt="profile" />
         )}
       </div>
-      <div className="w-1/2">
+      <div className="w-1/2 flex flex-col items-center">
         <div>{user?.name}</div>
         <div>{user?.email}</div>
         <div>{user?.role}</div>
-        <ChangeRole className="" />
       </div>
     </div>
   );

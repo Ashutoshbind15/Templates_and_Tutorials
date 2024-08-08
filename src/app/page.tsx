@@ -1,86 +1,71 @@
-import SignInC from "./components/auth/SignInC";
-import SignOut from "./components/auth/SingOut";
-import prisma from "./lib/prisma";
-import Repo from "./components/repos/Repo";
-import { getServerSession } from "next-auth";
-import { options1 } from "./api/auth/[...nextauth]/options";
+import Image from "next/image";
+import { Button } from "./components/uilib/ui/button";
+import Link from "next/link";
+import { CheckCircle } from "lucide-react";
 
 export default async function Home() {
-  const repos = await prisma.repo.findMany({
-    include: {
-      owner: true,
-      requesters: true,
-      metadata: true,
-      buyers: {
-        include: {
-          order: {
-            include: {
-              payments: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const sess = await getServerSession(options1);
-  const uid = sess?.user?.id;
-
-  const populatedRepos = repos.map((repo) => {
-    const repoOwnerId = repo.ownerId;
-    const repoOwner = repo.owner;
-    const hasConnected = repoOwner?.paymentGatewayAccountOnBoarded
-      ? true
-      : false;
-    const isOwner = repoOwnerId === uid;
-
-    const metadata = repo.metadata;
-
-    const hasBought = repo.buyers.find((buyer) => {
-      const order = buyer.order;
-      const payments = order?.payments;
-      if (!payments) return false;
-      if (!payments.length) return false;
-
-      const hasAPaymentSucceeded = payments.some((payment) => {
-        return payment.status === "captured";
-      });
-
-      return hasAPaymentSucceeded;
-    });
-
-    return {
-      ...metadata,
-      hasConnectedPayments: hasConnected,
-      isOwner: isOwner,
-      owner: {
-        name: repoOwner?.name,
-        email: repoOwner?.email,
-      },
-      hasMetadata: metadata ? true : false,
-      id: repo.id,
-      hasBought: hasBought ? true : false,
-    };
-  });
-
   return (
     <>
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <div className="p-2 border-2 border-white">
-          {populatedRepos.map((repo: any) => {
-            if (repo.hasMetadata === false || !repo.hasConnectedPayments)
-              return null;
-            return (
-              <Repo
-                repo={repo}
-                key={repo.id}
-                hasConnectedPayments={repo.hasConnectedPayments}
-                isOwner={repo.isOwner}
-                owner={repo.owner?.name}
-                hasBought={repo.hasBought}
-              />
-            );
-          })}
+      <main className="p-24 bg-zinc-950 text-white">
+        <div className="min-h-screen bg-gradient-to-br from-zinc-950 to-gray-800 mb-20 flex flex-row justify-around items-center">
+          <Image src="/images/hero.webp" alt="hero" width={400} height={200} />
+          <div className="text-2xl">
+            Tired of building websites for selling templates or courses? <br />
+            Need a better way to access the most popular ones?
+            <br />
+            We got you covered.
+          </div>
+        </div>
+
+        <div className="min-h-screen bg-gradient-to-bl from-gray-800 to-zinc-950 flex items-center justify-around mb-20 flex-row-reverse">
+          <Image
+            src={"/images/seller.webp"}
+            alt="seller"
+            width={400}
+            height={200}
+          />
+
+          <div>
+            <div className="flex flex-col items-center gap-x-4 text-lg gap-y-3 mb-8">
+              <div className="flex items-center gap-x-3">
+                <CheckCircle />
+                <span> Automate private repo access on buyouts </span>
+              </div>
+              <div className="flex items-center gap-x-3">
+                <CheckCircle />
+                <span> Add course metadata here itself </span>
+              </div>
+              <div className="flex items-center gap-x-3">
+                <CheckCircle />
+                <span> We manage the payments for you </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="min-h-screen bg-gradient-to-b from-gray-800 to-zinc-950 flex items-center justify-around mb-20">
+          <Image
+            src={"/images/buyer.webp"}
+            alt="buyer"
+            width={400}
+            height={200}
+          />
+
+          <div>
+            <div className="flex flex-col items-center gap-x-4 text-lg gap-y-3 mb-8">
+              <div> Choose from a bunch of templates </div>
+              <div> Get direct access on checkouts </div>
+              <div> Get guided by tutorials accompanying the templates </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-x-4">
+              <Link href={"/repo"}>
+                <Button className="bg-white text-black hover:text-white">
+                  Start Buying
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </main>
     </>

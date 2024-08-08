@@ -6,6 +6,12 @@ import prisma from "../lib/prisma";
 import { App } from "octokit";
 import { Button } from "../components/uilib/ui/button";
 import RepoMetadata from "../components/forms/RepoMetadata";
+import RepoPreview from "../components/repos/RepoPreview";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "../components/uilib/ui/dialog";
 
 const AddRepoPage = async () => {
   const session = await getServerSession(options1);
@@ -18,80 +24,82 @@ const AddRepoPage = async () => {
     throw new Error("Change your role to creator to add a repo");
   }
 
-  const isInstalled = await prisma.account.findFirst({
+  const dbuserAcc = await prisma.account.findFirst({
     where: {
       userId: session.user.id,
       provider: "github",
     },
-    select: {
-      gh_installation_ids: true,
-    },
   });
 
-  const installationId =
-    isInstalled?.gh_installation_ids?.length &&
-    isInstalled?.gh_installation_ids[0];
+  const isInstalled = dbuserAcc?.gh_installation_ids?.length;
 
-  const user = await prisma.user.findFirst({
+  const dbUser = await prisma.user.findUnique({
     where: {
       id: session.user.id,
     },
   });
 
-  const isConnectedPayments = user?.paymentGatewayAccountOnBoarded;
+  const isConnectedPayments = dbUser?.paymentGatewayAccountOnBoarded;
 
-  let repos;
-
-  if (installationId) {
-    const app = new App({
-      appId: process.env.GITHUB_APP_ID as string,
-      privateKey: process.env.GITHUB_APP_PRIVATE_KEY as string,
-    });
-
-    let octo = await app.getInstallationOctokit(+installationId);
-
-    if (installationId) {
-      const res = await octo?.request("GET /installation/repositories");
-      repos = res?.data;
-    }
-  }
+  const repos = await prisma.repo.findMany({
+    where: {
+      ownerId: session.user.id,
+    },
+    include: {
+      metadata: true,
+    },
+  });
 
   return (
-    <div className="flex flex-col items-center">
-      {repos &&
-        (repos.repositories.length ? (
-          <div className="w-3/4 rounded-md border-2 border-gray-300 p-3 mb-6">
-            {repos?.repositories?.map((repo) => (
-              <div
-                key={repo.id}
-                className="border-y-2 border-gray-300 py-4 px-2 mb-2 flex items-center justify-between"
-              >
-                <div>{repo.name}</div>
-                <div>
-                  <RepoMetadata repoId={repo.id} />
+    <div className="pt-20">
+      <div className="flex flex-col items-center max-h-screen overflow-y-auto">
+        {repos &&
+          (repos?.length ? (
+            <div className="w-1/2 p-8 mb-6 border-white border-2">
+              {repos?.map((repo) => (
+                <div
+                  key={repo.id}
+                  className="border-2 rounded-md border-gray-300 py-4 px-2 mb-2 flex items-center justify-between w-full"
+                >
+                  <div>{repo.title}</div>
+                  <div className="flex items-center gap-x-3">
+                    <RepoMetadata
+                      data={repo?.metadata}
+                      isMetadata={repo?.metadata ? true : false}
+                      repoId={repo.id}
+                    />
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button>Preview</Button>
+                      </DialogTrigger>
+                      <DialogContent className="text-black p-6">
+                        {repo.metadata && <RepoPreview repo={repo?.metadata} />}
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          "No repos"
-        ))}
+              ))}
+            </div>
+          ) : (
+            <div className="text-2xl mb-6">No repositories added</div>
+          ))}
 
-      <Link
-        href={`https://github.com/apps/tutsandtemps/installations/new`}
-        className="mb-4"
-      >
-        {!isInstalled && <Button>Add our app as an installation</Button>}
-        {!!isInstalled && <Button>Edit the app installation</Button>}
-      </Link>
-
-      {!isConnectedPayments && (
-        <Link href={"/profile/gatewayonboarding"}>
-          <Button>
-            Connect Payments for your repos to be publically visible
-          </Button>
+        <Link
+          href={`https://github.com/apps/tutsandtemps/installations/new`}
+          className="mb-4"
+        >
+          {!isInstalled && <Button>Add our app as an installation</Button>}
+          {!!isInstalled && <Button>Edit the app installation</Button>}
         </Link>
-      )}
+
+        {!isConnectedPayments && (
+          <Link href={"/profile/gatewayonboarding"}>
+            <Button>
+              Connect Payments for your repos to be publically visible
+            </Button>
+          </Link>
+        )}
+      </div>
     </div>
   );
 };

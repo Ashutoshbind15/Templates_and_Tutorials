@@ -5,7 +5,7 @@ export const POST = async (req: NextRequest) => {
   try {
     const data = await req.json();
 
-    const { title, description, url, repoId } = data;
+    const { title, description, url, repoId, cost, tags } = data;
 
     const metadata = await prisma.repoMetadata.create({
       data: {
@@ -13,6 +13,8 @@ export const POST = async (req: NextRequest) => {
         description,
         thumbnail: url,
         repoId: repoId.toString(),
+        cost: +cost,
+        tags: tags,
       },
     });
 

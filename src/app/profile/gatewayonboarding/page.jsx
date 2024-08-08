@@ -82,8 +82,11 @@ const OnboardingForm = () => (
       }}
       validate={toFormikValidationSchema(onboardingSchema)}
       onSubmit={async (values) => {
-        console.log(values);
-        await axios.post(`/api/paymentacc`, values);
+        try {
+          await axios.post(`/api/paymentacc`, values);
+        } catch (error) {
+          console.error(error);
+        }
       }}
     >
       {() => (

@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -18,7 +19,7 @@ datasource db {
 
 model Account {
   id                 String  @id @default(cuid())
-  userId             String
+  userId             String  
   type               String
   provider           String
   providerAccountId  String
@@ -54,9 +55,8 @@ model User {
   uploadedRepos Repo[]
   paymentGatewayAccountId String?
   paymentGatewayAccountOnBoarded Boolean @default(false)
-  learningRepos Repo[] @relation("StudentRepo")
-  requestedRepos Repo[] @relation("RequestRepo")
   buys Buyer[] 
+  ratings Rating[]
 }
 
 model VerificationToken {
@@ -72,12 +72,8 @@ model Repo {
   url String
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId String
-  students User[] @relation("StudentRepo")
-  requesters User[] @relation("RequestRepo")
   repoOrg String?
   buyers Buyer[] 
-  cost Int @default(0)
-  description String @default("Example Repo")
   metadata RepoMetadata?
 }
 
@@ -118,6 +114,18 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
+model Rating {
+  id String @id @default(cuid())
+  rating Int
+  review String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  repoMetadata RepoMetadata @relation(fields: [repoMetadataId], references: [id], onDelete: Cascade)
+  repoMetadataId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model RepoMetadata {
   id String @id @default(cuid())
   repoId String @unique
@@ -126,4 +134,18 @@ model RepoMetadata {
   description String
   thumbnail String
   videoUrl String?
+  cost Int @default(10000)
+  sections section[]
+  ratings Rating[]
+  tags String[]
+}
+
+model section {
+  id String @id @default(cuid())
+  title String
+  description String?
+  url String
+  repo RepoMetadata @relation(fields: [repoId], references: [repoId], onDelete: Cascade)
+  repoId String
+  sectionNotesUrl String?
 }

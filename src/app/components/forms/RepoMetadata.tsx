@@ -16,46 +16,39 @@ import { Label } from "../uilib/ui/label";
 import { UploadButton } from "@/app/lib/uploadthing";
 
 import { toast } from "sonner";
-import { revalidatePath } from "next/cache";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
-const RepoMetadata = ({ repoId }: { repoId: number }) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [url, setUrl] = useState("");
-  const [isMetadata, setIsMetadata] = useState(false);
+const RepoMetadata = ({ data, isMetadata, repoId }: any) => {
+  const [title, setTitle] = useState(data?.title);
+  const [description, setDescription] = useState(data?.description);
+  const [url, setUrl] = useState(data?.thumbnail);
+  const [cost, setCost] = useState(data?.cost);
+  const [metaExists, setMetaExists] = useState(isMetadata);
+  const [open, setOpen] = useState(false);
 
-  console.log(isMetadata);
+  const [tagsText, setTagsText] = useState("");
+  const [tags, setTags] = useState(data?.tags);
+
+  const removeTag = (tag: string) => {
+    setTags(tags.filter((t: any) => t !== tag));
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(`/api/metadata/${repoId}`);
-        const data = res.data;
+    if (!metaExists) {
+      setTags([]);
+    }
+  }, [metaExists]);
 
-        console.log("Metadata: ", data);
-
-        if (res.status === 200) {
-          setTitle(data.title);
-          setDescription(data.description);
-          setUrl(data.url);
-          setIsMetadata(true);
-        }
-      } catch (error) {}
-    };
-
-    fetchData();
-  });
+  const rtr = useRouter();
 
   return (
     <div>
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline">
-            {isMetadata ? "Edit metadata" : "Add metadata"}
-          </Button>
+          <Button>{isMetadata ? "Edit metadata" : "Add metadata"}</Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] text-black">
           <DialogHeader>
             <DialogTitle>
               {isMetadata ? "Edit metadata" : "Add metadata"}
@@ -65,6 +58,7 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
               Make changes to your profile here. Click save when youre done.
             </DialogDescription>
           </DialogHeader>
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="title" className="text-right">
@@ -72,7 +66,7 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
               </Label>
               <Input
                 id="title"
-                defaultValue="Pedro Duarte"
+                placeholder="xyz course"
                 className="col-span-3"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -84,12 +78,84 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
               </Label>
               <Input
                 id="description"
-                defaultValue="@peduarte"
+                placeholder="course description"
                 className="col-span-3"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="cost" className="text-right">
+                Cost
+              </Label>
+              <Input
+                id="cost"
+                defaultValue="0"
+                className="col-span-3"
+                value={cost}
+                onChange={(e) => setCost(+e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="tagsText" className="text-right">
+                tagsText
+              </Label>
+              <Input
+                id="tagsText"
+                defaultValue="0"
+                className="col-span-3"
+                value={tagsText}
+                onChange={(e) => setTagsText(e.target.value)}
+                placeholder="Add tags here"
+              />
+              <Button
+                onClick={() => {
+                  setTags([...tags, tagsText]);
+                  setTagsText("");
+                }}
+              >
+                Add
+              </Button>
+            </div>
+
+            <div>
+              <Label htmlFor="tags" className="text-right">
+                tags
+              </Label>
+              <div className="flex gap-2 flex-wrap">
+                {tags?.map((tag: string) => (
+                  <div
+                    key={tag}
+                    className="flex items-center bg-gray-200 p-2 rounded-md space-x-2"
+                  >
+                    <span className="text-gray-700">{tag}</span>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white p-1 rounded-full focus:outline-none"
+                      onClick={() => removeTag(tag)}
+                      aria-label={`Remove ${tag}`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <UploadButton
               endpoint="imageUploader"
               onClientUploadComplete={(res) => {
@@ -101,35 +167,70 @@ const RepoMetadata = ({ repoId }: { repoId: number }) => {
                 // Do something with the error.
                 alert(`ERROR! ${error.message}`);
               }}
+              className="ut-button:bg-zinc-950 ut-readying:bg-zinc-950 w-1/3 self-start ml-3"
             />
           </div>
           <DialogFooter>
             <Button
               type="button"
               onClick={async () => {
-                console.log("Save changes");
-
-                console.log("Title: ", title);
-                console.log("Description: ", description);
-                console.log("Url: ", url);
+                toast.loading("saving changes", {
+                  id: "saving",
+                  duration: 10000,
+                });
 
                 if (isMetadata) {
-                  await axios.put(`/api/metadata/${repoId}`, {
-                    title,
-                    description,
-                    url,
-                  });
+                  if (url.length) {
+                    const { data } = await axios.put(
+                      `/api/metadata/${repoId}`,
+                      {
+                        title,
+                        description,
+                        url,
+                        cost,
+                        tags,
+                      }
+                    );
+
+                    setCost(data.cost);
+                    setDescription(data.description);
+                    setTitle(data.title);
+                  } else {
+                    const { data } = await axios.put(
+                      `/api/metadata/${repoId}`,
+                      {
+                        title,
+                        description,
+                        cost,
+                        tags,
+                      }
+                    );
+
+                    setCost(data.cost);
+                    setDescription(data.description);
+                    setTitle(data.title);
+                  }
                 } else {
-                  await axios.post(`/api/metadata`, {
+                  const { data } = await axios.post(`/api/metadata`, {
                     title,
                     description,
                     url,
+                    cost,
                     repoId,
+                    tags,
                   });
+
+                  setCost(data.cost);
+                  setDescription(data.description);
+                  setTitle(data.title);
+                  setMetaExists(true);
+                  setOpen(false);
                 }
 
-                toast("Changes saved");
-                revalidatePath("/editrepo");
+                toast.dismiss("saving");
+                toast.success("Changes saved");
+
+                rtr.push(`/repo/${repoId}`);
               }}
             >
               Save changes

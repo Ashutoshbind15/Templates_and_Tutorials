@@ -31,7 +31,6 @@ export const GET = async (req: Request) => {
 
       if (installationId) {
         const res = await octo?.request("GET /installation/repositories");
-        console.log(res?.data);
         log(res?.data);
         return NextResponse.json({ data: res?.data, status: 200 });
       } else {
