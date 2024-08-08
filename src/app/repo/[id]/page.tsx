@@ -9,14 +9,6 @@ import {
 } from "@/app/components/uilib/ui/avatar";
 import { Button } from "@/app/components/uilib/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/app/components/uilib/ui/dialog";
-import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
@@ -25,8 +17,7 @@ import { UploadButton } from "@/app/lib/uploadthing";
 import { VideoOffIcon } from "lucide-react";
 import React, { useEffect } from "react";
 import { toast } from "sonner";
-import { Rating } from "react-simple-star-rating";
-import { Input } from "@/app/components/uilib/ui/input";
+import { useRouter } from "next/navigation";
 
 const RepoPage = ({ params }: { params: { id: string } }) => {
   const [repo, setRepo] = React.useState<any>(null);
@@ -35,7 +26,11 @@ const RepoPage = ({ params }: { params: { id: string } }) => {
   const [rating, setRating] = React.useState(0);
   const [ratingDescription, setRatingDescription] = React.useState("");
   const [isOwner, setIsOwner] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
+
   console.log("isOwner", isOwner);
+
+  const rtr = useRouter();
 
   const handleRating = (rate: number) => {
     setRating(rate);
@@ -43,13 +38,44 @@ const RepoPage = ({ params }: { params: { id: string } }) => {
 
   useEffect(() => {
     fetch(`/api/metadata/${params.id}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.redirected) {
+          const url = new URL(res.url);
+          return rtr.push(url.pathname);
+        } else {
+          return res.json();
+        }
+      })
       .then((data) => {
-        setRepo(data?.metadata);
-        setSections(data?.metadata.sections);
-        setIsOwner(data?.isOwner);
+        if (!data?.error) {
+          setRepo(data?.metadata);
+          setSections(data?.metadata?.sections);
+          setIsOwner(data?.isOwner);
+        } else {
+          toast.error(data?.error);
+          rtr.push("/repo");
+        }
+      })
+      .catch((err) => {
+        if (err.status === 401) {
+          toast.error("Unauthorized for this repo");
+          rtr.push("/repo");
+        }
+
+        console.log("Error: ", err);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-  }, [params.id]);
+  }, [params.id, rtr]);
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
+      </div>
+    );
+  }
 
   return (
     <ResizablePanelGroup
@@ -129,8 +155,14 @@ const RepoPage = ({ params }: { params: { id: string } }) => {
       <ResizablePanel>
         <div className="flex flex-col items-center h-screen">
           <div className="border-b-2 border-white flex items-center justify-between px-3 py-2 mb-4 w-full">
-            <TutorialSectionForm repoId={params.id} setSections={setSections} />
-            <Button>Action</Button>
+            {isOwner ? (
+              <TutorialSectionForm
+                repoId={params.id}
+                setSections={setSections}
+              />
+            ) : (
+              <p>Sections</p>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto w-full px-3">
@@ -148,33 +180,35 @@ const RepoPage = ({ params }: { params: { id: string } }) => {
                 </div>
 
                 {!section?.sectionNotesUrl?.length ? (
-                  <div className="flex flex-col items-center">
-                    <span className="my-2 underline">Add notes below</span>
-                    <UploadButton
-                      endpoint="notesUploader"
-                      input={{ sid: section.id }}
-                      onClientUploadComplete={(res) => {
-                        // Do something with the response
-                        console.log("Files: ", res);
+                  isOwner ? (
+                    <div className="flex flex-col items-center">
+                      <span className="my-2 underline">Add notes below</span>
+                      <UploadButton
+                        endpoint="notesUploader"
+                        input={{ sid: section.id }}
+                        onClientUploadComplete={(res) => {
+                          // Do something with the response
+                          console.log("Files: ", res);
 
-                        // Update the section with the notes
+                          // Update the section with the notes
 
-                        const updatedSections = sections.map((s: any) => {
-                          if (s.id === section.id) {
-                            return {
-                              ...s,
-                              sectionNotesUrl: res[0].url,
-                            };
-                          }
+                          const updatedSections = sections.map((s: any) => {
+                            if (s.id === section.id) {
+                              return {
+                                ...s,
+                                sectionNotesUrl: res[0].url,
+                              };
+                            }
 
-                          return s;
-                        });
+                            return s;
+                          });
 
-                        setSections(updatedSections as any);
-                        toast.success("Notes uploaded successfully");
-                      }}
-                    />
-                  </div>
+                          setSections(updatedSections as any);
+                          toast.success("Notes uploaded successfully");
+                        }}
+                      />
+                    </div>
+                  ) : null
                 ) : (
                   <Button asChild>
                     <a

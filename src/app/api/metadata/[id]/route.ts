@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { options1 } from "../../auth/[...nextauth]/options";
 import { hasAccess, isRepoOwner } from "@/app/lib/apihelpers";
+import { redirect } from "next/navigation";
 
 export const GET = async (
   req: NextRequest,
@@ -17,11 +18,13 @@ export const GET = async (
     }
 
     const uid = sess.user.id;
-
-    const doesUserHaveAccess = hasAccess(id, uid);
+    const doesUserHaveAccess = await hasAccess(id, uid);
 
     if (!doesUserHaveAccess) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const repoUrl = new URL("/repo", req.url);
+      return NextResponse.redirect(repoUrl, {
+        status: 303,
+      });
     }
 
     const metadata = await prisma.repoMetadata.findUnique({
@@ -45,6 +48,7 @@ export const GET = async (
     });
 
     const isOwner = await isRepoOwner(id, uid);
+    console.log("isOwner:api", isOwner);
 
     if (metadata) {
       return NextResponse.json({ metadata, isOwner }, { status: 200 });
