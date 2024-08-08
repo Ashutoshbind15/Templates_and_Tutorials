@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { options1 } from "../api/auth/[...nextauth]/options";
 import RepoPaginator from "../components/repos/RepoPaginator";
 import SearchAndFilter from "../components/repos/SearchAndFilter";
+import { title } from "process";
 
 const RepoPage = async ({
   searchParams,
@@ -19,16 +20,53 @@ const RepoPage = async ({
   const pageTags = searchParams.tags
     ? (searchParams.tags as string).split(",")
     : [];
-  const repoQuery = searchParams.q;
-
-  console.log(pageTags);
-  console.log(repoQuery);
-  console.log(pageNumber);
+  const repoQuery = searchParams.q ? searchParams.q : "";
 
   const take = 2;
   const skip = (pageNumber - 1) * take;
 
   const repos = await prisma.repo.findMany({
+    where: {
+      NOT: [
+        {
+          metadata: null,
+        },
+        {
+          owner: {
+            paymentGatewayAccountOnBoarded: false,
+          },
+        },
+      ],
+      metadata: {
+        tags: {
+          hasEvery: pageTags,
+        },
+      },
+      OR: [
+        {
+          metadata: {
+            title: {
+              contains: repoQuery as string,
+            },
+          },
+        },
+        {
+          metadata: {
+            description: {
+              contains: repoQuery as string,
+            },
+          },
+        },
+        {
+          owner: {
+            name: {
+              contains: repoQuery as string,
+            },
+          },
+        },
+      ],
+    },
+
     include: {
       owner: true,
       metadata: true,
@@ -43,6 +81,13 @@ const RepoPage = async ({
       },
     },
 
+    take: take,
+    skip: skip,
+  });
+
+  console.log("repolength", repos.length);
+
+  const totalReposWithMetadata = await prisma.repo.count({
     where: {
       NOT: [
         {
@@ -54,17 +99,34 @@ const RepoPage = async ({
           },
         },
       ],
-    },
-
-    take: take,
-    skip: skip,
-  });
-
-  const totalReposWithMetadata = await prisma.repo.count({
-    where: {
-      NOT: {
-        metadata: null,
+      metadata: {
+        tags: {
+          hasEvery: pageTags,
+        },
       },
+      OR: [
+        {
+          metadata: {
+            title: {
+              contains: repoQuery as string,
+            },
+          },
+        },
+        {
+          metadata: {
+            description: {
+              contains: repoQuery as string,
+            },
+          },
+        },
+        {
+          owner: {
+            name: {
+              contains: repoQuery as string,
+            },
+          },
+        },
+      ],
     },
   });
 

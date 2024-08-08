@@ -34,6 +34,12 @@ const RepoMetadata = ({ data, isMetadata, repoId }: any) => {
     setTags(tags.filter((t: any) => t !== tag));
   };
 
+  useEffect(() => {
+    if (!metaExists) {
+      setTags([]);
+    }
+  }, [metaExists]);
+
   const rtr = useRouter();
 
   return (

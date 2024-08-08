@@ -87,7 +87,7 @@ const RepoPage = ({ params }: { params: { id: string } }) => {
               </Avatar>
             </div>
 
-            <Dialog>
+            {/* <Dialog>
               <DialogTrigger asChild>
                 <Button>Rate</Button>
               </DialogTrigger>
@@ -119,7 +119,7 @@ const RepoPage = ({ params }: { params: { id: string } }) => {
                   Submit
                 </Button>
               </DialogContent>
-            </Dialog>
+            </Dialog> */}
           </div>
         </div>
       </ResizablePanel>
